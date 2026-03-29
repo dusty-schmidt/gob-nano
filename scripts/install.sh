@@ -2,70 +2,69 @@
 set -euo pipefail
 
 # -------------------------------------------------------------------
-# YOLO installer for the NANO Agent (idempotent)
-#   - Detects if the repository is already present
-#   - Sets up a Python virtual environment
-#   - Installs the package (editable mode)
-#   - Runs the built‑in setup wizard
+# NANO Installer - One command setup
+# Usage: curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh | bash
 # -------------------------------------------------------------------
 
-# Repository URL (SSH) – used only if we need to clone
-REPO_URL="git@github.com:dusty-schmidt/gob-family.git"
+REPO_URL="git@github.com:dusty-schmidt/gob-nano.git"
+INSTALL_DIR="${HOME}/.nano"
 
 # ---------------------------------------------------------------
-# Resolve the absolute path of the project root (two levels up)
+# Step 1 - Clone or update repository
 # ---------------------------------------------------------------
-SCRIPT_PATH="$(readlink -f "$0")"
-SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-NANO_DIR="${PROJECT_ROOT}/nano"
-
-# ---------------------------------------------------------------
-# Step 1 – Clone the repository if it is not already present
-# ---------------------------------------------------------------
-if [ ! -d "${PROJECT_ROOT}/.git" ]; then
-  echo "Cloning repository..."
-  git clone "$REPO_URL" "$PROJECT_ROOT"
+if [ -d "${INSTALL_DIR}/.git" ]; then
+    echo "📦 Updating existing installation..."
+    cd "${INSTALL_DIR}"
+    git pull origin main
 else
-  echo "Repository already exists – skipping clone."
+    echo "📥 Cloning gob-nano to ${INSTALL_DIR}..."
+    git clone "${REPO_URL}" "${INSTALL_DIR}"
+    cd "${INSTALL_DIR}"
 fi
 
 # ---------------------------------------------------------------
-# Step 2 – Change into the nano source directory
-# ---------------------------------------------------------------
-cd "$NANO_DIR"
-
-# ---------------------------------------------------------------
-# Step 3 – Create (or reuse) a virtual environment named 'venv'
+# Step 2 - Create virtual environment
 # ---------------------------------------------------------------
 if [ ! -d "venv" ]; then
-  echo "Creating virtual environment..."
-  python3 -m venv venv
-else
-  echo "Virtual environment already exists – reusing."
+    echo "🐍 Creating virtual environment..."
+    python3 -m venv venv
 fi
 
-# Activate the virtual environment
+# Activate venv
 source venv/bin/activate
 
-# Upgrade pip and install build tools
-pip install --quiet --upgrade pip setuptools wheel
+# Upgrade pip
+pip install --quiet --upgrade pip
 
 # ---------------------------------------------------------------
-# Step 4 – Install the package in editable mode
+# Step 3 - Install package
 # ---------------------------------------------------------------
-pip install -e .
+echo "📦 Installing package..."
+pip install --quiet -e .
 
 # ---------------------------------------------------------------
-# Step 5 – Run the setup wizard (creates config if missing)
+# Step 4 - Create .env from template if missing
 # ---------------------------------------------------------------
-python scripts/setup.py
-python -m nano.scripts.setup
+if [ ! -f ".env" ]; then
+    echo "📝 Creating .env file..."
+    cat > .env << 'EOF'
+# NANO Environment Variables
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+DISCORD_BOT_TOKEN=your_discord_bot_token_here
+EOF
+    echo "⚠️  Please edit .env and add your API keys!"
+fi
 
 # ---------------------------------------------------------------
-# Final message
+# Step 5 - Create memory file
 # ---------------------------------------------------------------
-echo "✅ NANO agent installed and initial setup completed."
+mkdir -p src/nano/data
+touch src/nano/data/memory.jsonl
 
-echo "You can now start the agent with:"
-echo "  source venv/bin/activate && python -m nano.main"
+echo ""
+echo "✅ Installation complete!"
+echo ""
+echo "Next steps:"
+echo "  1. Edit .env and add your API keys"
+echo "  2. Run: source venv/bin/activate"
+echo "  3. Run: python -m nano.main"
