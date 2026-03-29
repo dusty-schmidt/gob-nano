@@ -38,7 +38,7 @@ lint:
 
 # Run tests (requires pytest & coverage)
 test:
-	$(PYTHON) -m $(SCRIPTS_DIR)/test.py
+	$(PYTHON) -m scripts.test
 
 # Build Docker image
 build:
@@ -72,4 +72,4 @@ git push origin main
 # YOLO install – one‑command setup & start
 # -------------------------------------------------
 yolo:
-@./scripts/install.sh
+	@./scripts/install.sh
