@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  mini-agent:
+    build: .
+    container_name: mini-agent-zero
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./workdir:/a0/workdir
+      - ./tmp:/a0/tmp
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

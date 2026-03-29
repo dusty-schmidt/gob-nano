@@ -1,0 +1,43 @@
+# Mini-Agent-Zero Nano Configuration
+
+system:
+  name: "Mini-Agent-Zero Nano"
+  version: "0.1.0"
+  base_dir: "/a0"
+  workdir: "/a0/workdir"
+  temp_dir: "/a0/tmp"
+
+agent:
+  default_profile: "default"
+  max_iterations: 20
+  timeout: 300
+  auto_retry: true
+  retry_attempts: 3
+
+llm:
+  provider: "openrouter"
+  model: "qwen/qwen3.5-flash-02-23"
+  max_tokens: 4096
+  temperature: 0.7
+
+tools:
+  enabled:
+    - response
+    - search_engine
+    - document_query
+    - code_execution
+    - text_editor
+  disabled:
+    - bluesky
+    - youtube
+    - scheduler
+
+memory:
+  type: "json"
+  log_path: "/a0/helpers/memory/memory.jsonl"
+  max_history: 1000
+
+docker:
+  enabled: true
+  container_name: "mini-agent-zero"
+  terminal_access: true

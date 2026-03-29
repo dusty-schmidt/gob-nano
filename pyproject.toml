@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nano-agent"
+version = "0.1.0"
+description = "NANO - Minimal Discord AI Agent for Edge Devices"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{name = "dusty-schmidt"}]
+license = {text = "MIT"}
+keywords = ["discord", "ai", "agent", "edge-device"]
+
+dependencies = [
+    "discord.py>=2.3.0",
+    "requests>=2.31.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "flake8>=6.0"]
+
+# Setuptools configuration – no extra options needed (packages are discovered via the find section below)
+[tool.setuptools.packages.find]
+where = ["src"]

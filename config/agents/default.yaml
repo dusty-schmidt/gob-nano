@@ -1,0 +1,35 @@
+# Nano Default Agent
+name: "Default Agent"
+description: "General purpose AI assistant for edge devices"
+
+model:
+  provider: "openrouter"
+  name: "qwen/qwen3.5-flash-02-23"
+  max_tokens: 4096
+temperature: 0.7
+
+context: >-
+  You are a helpful AI assistant.
+  Execute tasks efficiently.
+  Use tools when needed.
+  
+  Focus on practical solutions that work on edge devices.
+  Be concise and direct.
+  Ask for clarification when needed.
+
+tools:
+  - response
+  - search_engine
+  - document_query
+  - code_execution
+  - text_editor
+
+settings:
+  max_iterations: 20
+  retry_on_error: true
+  auto_suggest_tools: true
+
+preferences:
+  default_language: "en"
+  verbose_outputs: false
+  include_timestamps: true
