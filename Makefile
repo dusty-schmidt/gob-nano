@@ -64,17 +64,19 @@ clean:
 	@echo "$(GREEN)✓ Cleanup complete$(NC)"
 
 # Push with strict remote sync check
+# Push with strict remote sync check
 push:
 	@echo "$(BLUE)Checking remote sync...$(NC)"
 	@git fetch origin
-	@if [ "$(shell git rev-list HEAD...origin/main --count)" != "0" ]; then \
+	@BEHIND=$$(git rev-list HEAD...origin/main --count); \
+	if [ "$$BEHIND" != "0" ]; then \
 		echo "$(RED)❌ Remote has changes - run 'make pull' first$(NC)"; \
+		echo "   Remote is ahead by $$BEHIND commits"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)Pushing to remote...$(NC)"
 	@git push origin main
 	@echo "$(GREEN)✓ Push successful - remote is in sync$(NC)"
-
 # Pull with rebase to maintain clean history
 pull:
 	@echo "$(BLUE)Pulling latest changes...$(NC)"
