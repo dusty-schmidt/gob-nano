@@ -1,21 +1,16 @@
 #!/bin/bash
-# Gob Agent - Quick start script
-# Run ./gob.sh to get straight to chat if configured, or setup wizard if new
+# GOB Agent - Quick start script (local source)
 
 set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
-# Check if Python venv exists
-if [ ! -d "venv" ]; then
-    echo "🔧 First time setup..."
-    bash scripts/install.sh
-fi
+# Set PYTHONPATH to include the src directory
+export PYTHONPATH="$DIR/src:$PYTHONPATH"
 
-# Activate venv
-source venv/bin/activate
+# Use the OpenRouter API key from secrets
+export OPENROUTER_API_KEY="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"
 
-# Run main - if configured, goes straight to chat
-# If not configured, shows setup wizard with Discord first
-python -m gob.main --mode tui
+# Run main.py directly from local source
+python src/gob/main.py "$@"
