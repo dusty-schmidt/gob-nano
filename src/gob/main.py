@@ -82,7 +82,7 @@ def main():
         return
 
     if args.mode == "tui":
-        from src.gob.interfaces.tui_chat import TUIChat
+        from src.gob.io.tui_chat import TUIChat
         ui = TUIChat(orchestrator)
         ui.run()
     elif args.mode == "discord":
@@ -91,7 +91,7 @@ def main():
         if not discord_token:
             discord_token = run_discord_wizard()
         
-        from src.gob.interfaces.discord_bot import GobDiscordBot
+        from src.gob.io.discord_bot import GobDiscordBot
         bot = GobDiscordBot(config, memory, llm_client)
         bot.run(discord_token)
 
