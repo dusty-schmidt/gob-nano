@@ -16,7 +16,7 @@ class GOBSetup:
     """Complete setup wizard for GOB-01"""
     
     def __init__(self, project_root: Optional[Path] = None):
-        self.project_root = project_root or Path(__file__).parent.parent.parent
+        self.project_root = project_root or Path(__file__).resolve().parent.parent.parent.parent
         self.venv_path = self.project_root / "venv"
         self.env_path = self.project_root / ".env"
         self.config_path = self.project_root / "config" / "config.yaml"
@@ -31,16 +31,16 @@ class GOBSetup:
         print(f" 📍 Project Directory: {self.project_root.absolute()}")
         print()
 
-    def print_colored(self, text: str, color: str = "\\033[0;32m"):
+    def print_colored(self, text: str, color: str = "\033[0;32m"):
         """Print colored text"""
-        end_color = "\\033[0m"
+        end_color = "\033[0m"
         print(f"{color}{text}{end_color}")
 
     def check_python_version(self) -> bool:
         """Check Python 3.9+ requirement"""
         version = (sys.version_info.major, sys.version_info.minor)
         if version >= (3, 9):
-            self.print_colored(f"✓ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} found", "\\033[0;32m")
+            self.print_colored(f"✓ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} found", "\033[0;32m")
             return True
         else:
             print(f"❌ Python 3.9+ required (found {version[0]}.{version[1]})")
@@ -56,7 +56,7 @@ class GOBSetup:
         for cmd, desc in checks:
             try:
                 subprocess.run([cmd, "--version"], capture_output=True, check=True)
-                self.print_colored(f"✓ {desc} found", "\\033[0;32m")
+                self.print_colored(f"✓ {desc} found", "\033[0;32m")
             except subprocess.CalledProcessError:
                 print(f"❌ {desc} not found - please install")
                 return False
@@ -65,13 +65,13 @@ class GOBSetup:
     def create_venv(self) -> bool:
         """Create Python virtual environment"""
         if self.venv_path.exists():
-            self.print_colored(f"✓ Virtual environment exists", "\\033[0;32m")
+            self.print_colored(f"✓ Virtual environment exists", "\033[0;32m")
             return True
         
         print("Creating virtual environment...")
         try:
             subprocess.run([sys.executable, "-m", "venv", str(self.venv_path)], check=True)
-            self.print_colored("✓ Virtual environment created", "\\033[0;32m")
+            self.print_colored("✓ Virtual environment created", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
             print(f"❌ Failed to create venv: {e}")
@@ -92,7 +92,7 @@ class GOBSetup:
             subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], 
                           cwd=str(self.project_root), check=True, capture_output=True)
             
-            self.print_colored("✓ All dependencies installed", "\\033[0;32m")
+            self.print_colored("✓ All dependencies installed", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
             print(f"❌ Failed to install dependencies: {e}")
@@ -103,7 +103,7 @@ class GOBSetup:
     def create_env_file(self):
         """Create .env file with template"""
         if self.env_path.exists():
-            self.print_colored("✓ .env file exists", "\\033[0;32m")
+            self.print_colored("✓ .env file exists", "\033[0;32m")
         else:
             print("Creating .env file...")
             env_template = """# GOB-01 Configuration Environment Variables
@@ -118,7 +118,7 @@ DISCORD_BOT_TOKEN=
 """
             with open(self.env_path, "w") as f:
                 f.write(env_template)
-            self.print_colored("✓ .env file created", "\\033[0;32m")
+            self.print_colored("✓ .env file created", "\033[0;32m")
 
     def prompt_api_key(self) -> Optional[str]:
         """Prompt for OpenRouter API key"""
@@ -215,7 +215,7 @@ DISCORD_BOT_TOKEN=
             result = subprocess.run([venv_python, "-c", "import sys; print(sys.version)"], 
                                   capture_output=True, text=True, timeout=30)
             if result.returncode == 0:
-                self.print_colored("✓ Python environment configured", "\\033[0;32m")
+                self.print_colored("✓ Python environment configured", "\033[0;32m")
             else:
                 print("❌ Python not working")
                 return False
@@ -229,7 +229,7 @@ DISCORD_BOT_TOKEN=
                 "import discord, pyyaml, requests, httpx, faiss, sentence_transformers, numpy; print('OK')"], 
                 capture_output=True, text=True, timeout=30)
             if result.returncode == 0:
-                self.print_colored("✓ All required packages installed", "\\033[0;32m")
+                self.print_colored("✓ All required packages installed", "\033[0;32m")
             else:
                 print("❌ Some packages missing")
                 return False
@@ -239,7 +239,7 @@ DISCORD_BOT_TOKEN=
         
         # Check config
         if self.config_path.exists():
-            self.print_colored("✓ Config file exists", "\\033[0;32m")
+            self.print_colored("✓ Config file exists", "\033[0;32m")
         else:
             print("⚠️  Config file missing (will be created on first run)")
         
@@ -249,14 +249,14 @@ DISCORD_BOT_TOKEN=
             try:
                 from src.gob.core.llm_client import LLMClient
                 client = LLMClient()
-                self.print_colored("✓ LLM client configured (key found)", "\\033[0;32m")
+                self.print_colored("✓ LLM client configured (key found)", "\033[0;32m")
             except Exception as e:
                 print(f"⚠️  LLM client: {e}")
         else:
             print("⚠️  OpenRouter API key not found - agent needs key to run")
         
         print()
-        self.print_colored("═══════════════════════════════════════════════", "\\033[0;32m")
+        self.print_colored("═══════════════════════════════════════════════", "\033[0;32m")
         print(" ✓ VALIDATION COMPLETE")
         print("═══════════════════════════════════════════════")
         return True
