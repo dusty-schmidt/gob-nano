@@ -11,7 +11,7 @@ services:
     
     # Load environment variables from .env
     env_file:
-      - .env
+      - ../.env
     
     # Bind mounts for config and data
     volumes:
