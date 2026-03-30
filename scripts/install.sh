@@ -110,6 +110,11 @@ echo ""
 # Ensure wizard dependencies are installed in system python
 pip3 install -q pyyaml python-dotenv > /dev/null 2>&1
 
+# Pass API key to wizard if provided in environment
+if [ -n "$GOB_OPENROUTER_API_KEY" ]; then
+    export GOB_OPENROUTER_API_KEY
+fi
+
 cd "$INSTALL_DIR"
 python3 src/gob/core/setup_wizard.py
 
@@ -177,9 +182,18 @@ echo "   gob            # Start TUI chat"
 echo "   gob --discord  # Start Discord bot"
 echo "   gob --help     # See all options"
 echo ""
-echo -e "${YELLOW}Note:${NC} If this is your first time, reload your shell:"
-echo "   source $RC_FILE"
-echo "   # or open a new terminal"
-echo ""
 echo -e "${BLUE}📚 Documentation:${NC} $INSTALL_DIR/README.md"
 echo ""
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 6: Launch GOB
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [ -n "$GOB_OPENROUTER_API_KEY" ]; then
+    export GOB_OPENROUTER_API_KEY
+    echo -e "${BLUE}🚀 Starting GOB (API key provided)...${NC}"
+    exec ~/.local/bin/gob --tui
+else
+    echo -e "${BLUE}🚀 Starting GOB (no API key - will prompt)...${NC}"
+    exec ~/.local/bin/gob --tui
+fi

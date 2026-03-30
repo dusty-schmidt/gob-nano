@@ -131,23 +131,37 @@ DISCORD_BOT_TOKEN=
         print(" https://openrouter.ai/keys")
         print()
         
-        key = os.getenv("OPENROUTER_API_KEY")
+    def prompt_api_key(self):
+        """Prompt for OpenRouter API key"""
+        print(f"\n{self.section_break}")
+        print(" 🔑 Step 1: OpenRouter API Key (REQUIRED)")
+        print(f"{self.section_break}\n")
         
-        if not key:
-            print(" Paste your OpenRouter API key below (or press Enter to skip):")
-            key = input().strip()
-        
-        if key:
-            # Update .env file
-            self._save_env_var("OPENROUTER_API_KEY", key)
-            print("✓ API key configured")
-            return key
-        else:
-            print("⚠️  No API key provided")
-            return None
+        # Check if key is provided in environment (non-interactive mode)
+        env_key = os.environ.get("GOB_OPENROUTER_API_KEY")
+        if env_key:
+            print("Found OpenRouter API key in environment.")
+            self.update_env_file("OPENROUTER_API_KEY", env_key)
+            print(f"{self.colored('✓ API key configured from environment', self.GREEN)}")
+            return
 
-    def prompt_discord_token(self) -> Optional[str]:
-        """Prompt for Discord bot token (optional)"""
+        print("GOB needs an LLM to work. Get your free key at:")
+        print("https://openrouter.ai/keys\n")
+        print("Paste your OpenRouter API key below (or press Enter to skip):")
+        
+        # Check if running interactively
+        if sys.stdin.isatty():
+            key = input("> ").strip()
+        else:
+            # Non-interactive mode (piped input) - read from stdin
+            key = sys.stdin.readline().strip()
+            
+        if key:
+            self.update_env_file("OPENROUTER_API_KEY", key)
+            print(f"{self.colored('✓ API key configured', self.GREEN)}")
+        else:
+            print(f"{self.colored('⚠️  No API key provided', self.YELLOW)}")
+                
         print()
         print("─" * 70)
         print(" 🎮 Step 2: Discord Bot Token (OPTIONAL)")
