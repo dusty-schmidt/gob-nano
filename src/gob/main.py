@@ -113,6 +113,26 @@ def main():
         print("")
         from src.gob.interfaces.tui_chat import run_tui_chat
         run_tui_chat(orchestrator, memory)
+        
+        # Suggest Discord setup after successful TUI session
+        print("")
+        print("═" * 50)
+        print("Session complete!")
+        print("═" * 50)
+        print("")
+        
+        # Check if Discord is configured
+        discord_config = config.get('discord', {})
+        discord_token = discord_config.get('token', '')
+        
+        if not discord_token or discord_token.startswith('${'):
+            print("💡 Want me always available in Discord?")
+            print("")
+            print("  1. Get a Discord token from Discord Developer Portal")
+            print("  2. Add it to .env: DISCORD_BOT_TOKEN=your_token")
+            print("  3. Run: python -m gob.main --mode discord")
+            print("")
+            print("")
 
     elif args.mode == 'discord':
         print("Starting Discord bot...")

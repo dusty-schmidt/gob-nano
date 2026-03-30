@@ -1,4 +1,4 @@
-"""Discord Bot Interface for NANO"""
+"""Discord Bot Interface for GOB"""
 import asyncio
 import discord
 from discord.ext import commands
@@ -8,8 +8,8 @@ from src.gob.orchestrator import AgentOrchestrator
 from src.gob.helpers.memory.memory import MemoryManager
 
 
-class NanoDiscordBot(commands.Bot):
-    """Discord bot for NANO agent"""
+class GobDiscordBot(commands.Bot):
+    """Discord bot for GOB agent"""
 
     def __init__(
         self,
@@ -107,7 +107,7 @@ class NanoDiscordBot(commands.Bot):
     async def help_command(self, ctx: commands.Context):
         """Show help information"""
         embed = discord.Embed(
-            title="🤖 GOB-GOB Agent",
+            title="🤖 GOB Agent",
             description="Your minimal AI assistant for edge devices",
             color=discord.Color.blue()
         )

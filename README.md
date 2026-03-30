@@ -4,95 +4,58 @@
 
 Agent Zero's stripped-down cousin. All capability, minimal bloat.
 
+**Primary Interface:** Discord Bot
+**Secondary Interface:** CLI Chat
+
 ---
 
 ## Quick Start ⚡
 
+### Discord Bot (Recommended)
+
 ```bash
 # Install
 curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob/main/scripts/install.sh | bash
+cd ~/.gob
 
-# Configure
-cd ~/.gob && source venv/bin/activate && nano .env
+# Enable Discord bot in .env
+nano .env
+# Add: DISCORD_BOT_TOKEN=your_token_here
 
-# Run
-python -m gob.main
+# Run bot mode
+source venv/bin/activate && python -m gob.main --mode discord
 ```
+
+**How to use Discord:**
+- **Mention:** `@gob Hello` - responds in channel
+- **DM:** Direct messages always enabled
+- **Commands:** `!help`, `!clear`, `!status`
+
+### CLI Chat (Development)
+
+```bash
+python -m gob.main --mode tui
+```
+
+---
 
 ## What is gob?
 
-A minimal AI assistant that:
+**Always-on Discord assistant** that:
 
-✅ **Runs on old machines** - ~100MB RAM, ~15s startup  
+✅ **Always listening** - Responds on mention in any channel  
+✅ **Persistent conversations** - Remembers context per channel  
 ✅ **Auto-discovers tools** - Add YAML configs, no coding needed  
 ✅ **Installs packages on-demand** - pip/apt-get available  
 ✅ **Full terminal access** - Any Linux tool, anytime  
 ✅ **YAML-based** - Edit configs, not code  
 
----
+## Core Features
 
-## Features
+### Discord Bot
 
-| Feature | Description |
-|---------|-------------|
-| **Core Tools** | 5 built-in: search, code execution, file editing, document parsing, responses |
-| **Runtime Expandable** | Install any package when needed |
-| **Custom Agents** | Create specialized profiles in YAML |
-| **Lightweight** | No vector DB, no bloat |
-| **Discord Ready** | Optional bot mode |
-
-## Documentation
-
-| Doc | Description |
-|-----|-------------|
-| [Quick Start](docs/quick-start.md) | Installation & first run |
-| [Configuration](docs/configuration.md) | Custom settings & agents |
-| [Tools](docs/tools.md) | Available capabilities |
-| [Development](docs/development.md) | Extend & maintain gob |
-| [FAQ](docs/faq.md) | Common questions |
-
----
-
-## Examples
-
-### Code Generation
-```
-You: "Write a Python script that parses CSV files"
-→ Gob: [Generates complete script]
-```
-
-### File Analysis
-```
-You: "What's in this config file?"
-→ Gob: [Reads file and explains structure]
-```
-
-### Web Research
-```
-You: "What are the latest AI trends?"
-→ Gob: [Searches and summarizes findings]
-```
-
----
-
-## Why gob?
-
-| Traditional AI Agents | gob |
-|----------------------|-----|
-| 500MB+ base image | 150MB base |
-| Pre-bundled dependencies | Install on-demand |
-| Complex configs | YAML editing |
-| Slow startup (60+ sec) | Fast startup (~15s) |
-| Fixed capabilities | Unlimited expansion |
-
----
-
-## License
-
-MIT (same as Agent Zero)
-
-**GitHub:** [dusty-schmidt/gob](https://github.com/dusty-schmidt/gob)
-
----
-
-**Status:** Production-ready • **Tests:** 22/22 passing • **Version:** 0.1.0
+| Feature | Action |
+|---------|--------|
+| **Always Available** | 24/7 listening in Discord servers |
+| **Channel Context** | Separate conversations per channel |
+| **
