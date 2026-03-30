@@ -283,7 +283,7 @@ log_info "Building ${IMAGE_NAME}:latest..."
 log_info "This may take a minute on first build..."
 echo
 
-docker-compose build --no-cache
+docker-compose -f docker/docker-compose.yml build --no-cache
 
 log_success "Docker image built successfully"
 
@@ -298,7 +298,7 @@ log_section "Validating Installation"
 log_info "Running validation tests..."
 echo
 
-docker-compose run --rm nano pytest tests/ -q
+docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -q
 
 log_success "All tests passed!"
 
@@ -339,7 +339,7 @@ echo "   cd ${INSTALL_DIR}"
 echo "   docker-compose up"
 echo
 echo "🧪 To run tests:"
-echo "   docker-compose run --rm nano pytest tests/ -v"
+echo "   docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -v"
 echo
 echo "📝 To edit configuration:"
 echo "   nano ${INSTALL_DIR}/.env"
