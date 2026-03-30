@@ -1,10 +1,8 @@
 # Gradient Observation Bridge (GOB)
 
-GOB is a minimal AI agent that treats Discord as its native operating system. It runs as a user in your Discord server, executes tools, maintains memory, and coordinates with humans and other agents. No custom UI. No separate interface. Just Discord.
+GOB is a minimal AI agent that treats Discord as the bridge for tru collaboration between agents and humans. It manages a discord server, executes tools, maintains memory, and coordinates with humans and other agents. Discord already solved the hard problems—team collaboration, notifications, mobile access, persistent messaging, file sharing, permissions, organization. This allows GOB to be highly intelligent with extensive native capabilities while remaining light enough to run on an edge device. 
 
-Every AI framework solves some problems and creates others. GOB starts differently: **Discord already solved the hard problems—team collaboration, notifications, mobile access, persistent messaging, file sharing, permissions, organization.** Why rebuild all that? Instead, use it. This frees resources for what matters: agent intelligence and capability.
-
-Start with `./gob.sh` and choose your interface. For setup, configuration, tools, and architecture details, see the [docs](docs/).
+GOB runs in a docker container with a built in linux environment, has a dedicated workspace for full development, and can install new tools and capabilities autonomously.  It is compatible with MCP, SKILLS, and whatever comes out next month.
 
 ## Documentation
 
@@ -14,6 +12,3 @@ Start with `./gob.sh` and choose your interface. For setup, configuration, tools
 - [Development](docs/development.md) — Extending GOB
 - [FAQ](docs/faq.md) — Common questions
 
-## License
-
-MIT
