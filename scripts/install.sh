@@ -197,6 +197,17 @@ cd "${INSTALL_DIR}"
 
 log_section "Configuration Setup"
 
+# Check if we have interactive terminal
+if [ ! -t 0 ]; then
+    # Try to use /dev/tty for interactive input
+    exec < /dev/tty || {
+        log_error "This installer requires an interactive terminal."
+        echo "Please run it directly, not piped:"
+        echo "  bash <(curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh)"
+        exit 1
+    }
+fi
+
 # OpenRouter API Key
 echo "🔑 OpenRouter API Key (Required)"
 echo
@@ -210,11 +221,11 @@ echo
 
 OPENROUTER_API_KEY=""
 while [ -z "${OPENROUTER_API_KEY}" ]; do
-    read -p "Paste your OpenRouter API key: " OPENROUTER_API_KEY
+    read -p "Paste your OpenRouter API key: " OPENROUTER_API_KEY < /dev/tty
     if [ -z "${OPENROUTER_API_KEY}" ]; then
         echo "❌ API key cannot be empty."
         echo "   Please go to https://openrouter.ai/keys and get your key."
-        read -p "Press Enter to try again..."
+        read -p "Press Enter to try again..." < /dev/tty
     fi
 done
 log_success "OpenRouter API key saved"
@@ -232,7 +243,7 @@ echo
 echo "   Or press Enter to skip (configure later in .env)"
 echo
 
-read -p "Enter Discord bot token (or press Enter to skip): " DISCORD_BOT_TOKEN || DISCORD_BOT_TOKEN=""
+read -p "Enter Discord bot token (or press Enter to skip): " DISCORD_BOT_TOKEN < /dev/tty || DISCORD_BOT_TOKEN=""
 
 if [ -n "${DISCORD_BOT_TOKEN}" ]; then
     log_success "Discord bot token saved"
