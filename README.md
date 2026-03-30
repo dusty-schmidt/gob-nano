@@ -4,11 +4,5 @@ GOB is a minimal AI agent that treats Discord as the bridge for tru collaboratio
 
 GOB runs in a docker container with a built in linux environment, has a dedicated workspace for full development, and can install new tools and capabilities autonomously.  It is compatible with MCP, SKILLS, and whatever comes out next month.
 
-## Documentation
-
-- [Quick Start](docs/quick-start.md) — Setup and first steps
-- [Configuration](docs/configuration.md) — Settings and customization
-- [Tools](docs/tools.md) — Available capabilities
-- [Development](docs/development.md) — Extending GOB
-- [FAQ](docs/faq.md) — Common questions
+Created by Dusty Schmidt
 
