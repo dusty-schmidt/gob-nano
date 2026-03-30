@@ -27,7 +27,3 @@ services:
     
     # Keep container running
     restart: unless-stopped
-    
-    # Don't auto-start (controlled by user)
-    profiles:
-      - ""
