@@ -23,9 +23,10 @@ nano .env
 # Add: OPENROUTER_API_KEY=your_key_here
 
 # Run chat
-source venv/bin/activate
 python -m gob.main --mode tui
 ```
+
+**Note:** The TUI and Discord modes are separate. To use Discord, you must explicitly run Discord mode and configure your token.
 
 **What happens:**
 - ✅ Type naturally - `"Write a Python script for X"`
@@ -34,8 +35,8 @@ python -m gob.main --mode tui
 - ✅ Exit anytime with `Ctrl+C`
 
 **After session ends:**
-- 💡 gob will suggest: *"Want me always available in Discord?"*
-- 🚀 Then upgrade to Discord bot (see Path 2)
+- 💡 To upgrade to Discord, run: `python -m gob.main --mode discord`
+- 📝 Add `DISCORD_BOT_TOKEN` to `.env` first (see Discord Setup below)
 
 ---
 
@@ -126,30 +127,19 @@ User: "What's in this config?"
 ## Why This Flow?
 
 | Step | Benefit |
-|------|---------|
+|------|---------|  
 | **1. TUI chat** | Instant gratification, zero setup |
 | **2. Experience value** | See tools in action |
 | **3. Upgrade to Discord** | Always available, multi-user |
 
-**Low friction entry → proven value → optional expansion**
-
----
 
 ## Next Steps
 
 ### After TUI Success
 
-- 💡 Accept Discord suggestion when prompts
-- 📚 Read [Discord Setup](configuration.md#discord-setup) for full details
-- 🛠️ Let Gob help install Discord as a task!
-
-### Explore More
-
-- [Configuration](configuration.md) - Customize everything
-- [Tools](tools.md) - See what gob can do
-- [Development](development.md) - Extend gob
+- 🧭 Manually start Discord: `python -m gob.main --mode discord`
+- 💪 First add `DISCORD_BOT_TOKEN` to `.env` (see Configuration section)
 - [FAQ](faq.md) - Common questions
-
----
+- [Development](development.md) - Extend gob
 
 **Ready?** Start with TUI: `python -m gob.main --mode tui` 🚀
