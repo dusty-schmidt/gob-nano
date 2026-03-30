@@ -1,59 +1,88 @@
-# Quick Start
+# Quick Start - GOB-01
 
-Get gob running in 5 minutes.
-
-## Two Paths to Success
-
-Gob starts you with **instant value**, then can expand to:
-
-1. **TUI Chat** (instant) - Use immediately, get value
-2. **Discord Bot** (step 2) - Always available, 24/7
-
-## Path 1: Start with TUI Chat ⚡
-
-**The fastest way to see gob in action:**
-
-```bash
-# Install
-curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob/main/scripts/install.sh | bash
-cd ~/.gob
-
-# Configure API key only
-nano .env
-# Add: OPENROUTER_API_KEY=your_key_here
-
-# Run chat
-python -m gob.main --mode tui
-```
-
-**Note:** The TUI and Discord modes are separate. To use Discord, you must explicitly run Discord mode and configure your token.
-
-**What happens:**
-- ✅ Type naturally - `"Write a Python script for X"`
-- ✅ GoB uses tools automatically - search, code execution, file editing
-- ✅ Works instantly - no Discord needed
-- ✅ Exit anytime with `Ctrl+C`
-
-**After session ends:**
-- 💡 To upgrade to Discord, run: `python -m gob.main --mode discord`
-- 📝 Add `DISCORD_BOT_TOKEN` to `.env` first (see Discord Setup below)
+Get GOB running in **one command**. No manual steps required.
 
 ---
 
-## Path 2: Upgrade to Discord Bot
-
-**After experiencing TUI, set up Discord for always-on helper:**
+## 🚀 ONE-Command Setup
 
 ```bash
-# 1. Get Discord token (from Discord Developer Portal)
-curl -fsSL https://discord.com/developers/applications
-# Create bot → Bot tab → Reset Token → Copy token
+git clone https://github.com/dusty-schmidt/gob-01.git
+cd gob-01
+./gob.sh
+```
 
-# 2. Add to .env
-nano .env
-# Add: DISCORD_BOT_TOKEN=your_token_here
+**What happens:**
+1. ✅ Virtual environment created
+2. ✅ All dependencies installed
+3. ✅ `.env` configuration file created
+4. ✅ **You configure OpenRouter API key** (interactive prompt)
+5. ✅ **Optional Discord bot setup** (interactive prompt)
+6. ✅ Everything validated and tested
+7. ✅ GOB ready to run
 
-# 3. Run Discord bot
+**Total time:** ~60 seconds with API key ready
+
+---
+
+## 📋 Prerequisites (You Only Need These)
+
+### Required:
+- **Python 3.9+** - The agent needs Python
+- **Git** - For cloning the repository
+- **pip** - Package manager
+- **Internet access** - For installing dependencies and calling LLM
+- **OpenRouter API key** - Free key from https://openrouter.ai/keys
+
+### Optional:
+- **Discord server** - For Discord bot mode
+- **Discord bot token** - From Discord Developer Portal
+
+### NOT required:
+- ❌ Manual pip installs
+- ❌ Manual venv creation
+- ❌ Manual .env editing
+- ❌ Manual dependency installation
+
+**Everything is automated in `./gob.sh`**.
+
+---
+
+## 🎯 Two Usage Paths (Both Work After Setup)
+
+### Path 1: TUI Chat (Terminal)
+
+The fastest way to see GOB work:
+
+```bash
+gob.sh                    # Auto-detects mode
+# or:
+python -m gob.main --mode tui
+```
+
+**What happens:**
+- ✅ Chat in terminal
+- ✅ Agent uses tools automatically
+- ✅ Works instantly
+- ✅ Exit with `Ctrl+C`
+
+**Example conversation:**
+```
+User: "What are the latest AI trends?"
+→ GOB: [Searches & summarizes]
+
+User: "Write a Python script to parse this CSV"
+→ GOB: [Uses code_execution, creates file]
+
+User: "What's in this config file?"
+→ GOB: [Uses text_editor, explains structure]
+```
+
+### Path 2: Discord Bot (24/7)
+
+```bash
+gob.sh --discord
+# or:
 python -m gob.main --mode discord
 ```
 
@@ -63,83 +92,119 @@ python -m gob.main --mode discord
 - **Commands:** `!help`, `!clear`, `!status`
 - **Always listening:** 24/7 without terminal open
 
----
-
-## Prerequisites
-
-### Required
-
-- Python 3.9+
-- Git
-- Terminal with internet access
-- OpenRouter API key ([Sign up at openrouter.ai](https://openrouter.ai))
-
-### Optional (for Discord)
-
-- Discord account
-- Discord server (or personal server)
+**Setup required:** During `./gob.sh` wizard, select `y` for Discord setup and paste your bot token.
 
 ---
 
-## One-Command Installation
+## 🔑 API Key Configuration
+
+During `./gob.sh` setup:
+
+1. **OpenRouter API Key** (REQUIRED)
+   - Get free key: https://openrouter.ai/keys
+   - Paste during setup wizard
+   - Stored in `.env` file
+
+2. **Discord Bot Token** (OPTIONAL)
+   - Get from Discord Developer Portal
+   - Paste during setup wizard (if you want Discord mode)
+   - Stored in `.env` file
+
+**You can also set env vars manually:**
+```bash
+openrouter_api_key=your_key ./gob.sh
+# or
+export OPENROUTER_API_KEY=your_key && ./gob.sh
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [Quick Start](quick-start.md) | **This file** - Get running now |
+| [Configuration](configuration.md) | Detailed setup options |
+| [Tools](tools.md) | All available tools and usage |
+| [FAQ](faq.md) | Common questions |
+| [Development](development.md) | Extend GOB |
+
+---
+
+## ✅ Verification
+
+After setup, verify everything works:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob/main/scripts/install.sh | bash
+gob.sh --validate
 ```
 
-This will:
-1. Clone to `~/.gob`
-2. Create Python venv
-3. Install all dependencies
-4. Generate `.env` template
+**Tests:**
+- 🟢 Virtual environment configured
+- 🟢 All packages installed
+- 🟢 LLM client working
+- 🟢 Config file loaded
 
 ---
 
-## Using the Bot
+## 🎯 What You Get
 
-### TUI Mode
+### Immediately After Setup:
+- ✅ **TUI Chat** - Chat in terminal, 0 setup
+- ✅ **Memory Recall** - Remembers facts across sessions via FAISS
+- ✅ **12+ Built-in Tools** - Search, code exec, file edit, etc.
+- ✅ **Multi-LLM Support** - Cost-optimized query routing
+- ✅ **Error Handling** - Graceful failure with recovery
 
-```
-User: "What are the latest AI trends?"
-→ Gob: [Searches & summarizes]
-
-User: "Write a script to parse this CSV"
-→ Gob: [Uses code_execution, creates file]
-
-User: "What's in this config?"
-→ Gob: [Uses text_editor, explains structure]
-```
-
-**Tools work automatically** - no need to request specific capabilities!
-
-### Discord Mode
-
-```
-👤 @gob Hello
-@gob: Hi! How can I help?
-
-👤 !status
-@gob: Shows model, active conversations, tools
-```
+### After Discord Setup:
+- ✅ **24/7 Bot** - Always available
+- ✅ **Mention System** - @gob Hello to engage
+- ✅ **Commands** - !help, !clear, !status
+- ✅ **DM Support** - Works in direct messages
 
 ---
 
-## Why This Flow?
+## 🛠️ Troubleshooting
 
-| Step | Benefit |
-|------|---------|  
-| **1. TUI chat** | Instant gratification, zero setup |
-| **2. Experience value** | See tools in action |
-| **3. Upgrade to Discord** | Always available, multi-user |
+### "Python not found"
+Install Python 3.9+: `sudo apt install python3 python3-venv python3-pip`
 
+### "Git not found"
+Install Git: `sudo apt install git`
+
+### "Permission denied" on gob.sh
+Make it executable: `chmod +x scripts/gob.sh`
+
+### "API key missing"
+Run `gob.sh` again - wizard will prompt you
+
+### "Discord token invalid"
+Check Discord Developer Portal → Bot tab → Reset Token
+
+---
 
 ## Next Steps
 
-### After TUI Success
+**Try these commands after setup:**
 
-- 🧭 Manually start Discord: `python -m gob.main --mode discord`
-- 💪 First add `DISCORD_BOT_TOKEN` to `.env` (see Configuration section)
-- [FAQ](faq.md) - Common questions
-- [Development](development.md) - Extend gob
+1. **TUI Chat:**
+   ```bash
+   gob.sh --mode tui
+   ```
 
-**Ready?** Start with TUI: `python -m gob.main --mode tui` 🚀
+2. **Test Discord:**
+   ```bash
+   gob.sh --discord
+   ```
+
+3. **Validate Installation:**
+   ```bash
+   gob.sh --validate
+   ```
+
+4. **View Tools Available:**
+   ```bash
+   cat docs/tools.md
+   ```
+
+**That's it. You're ready to go! 🚀**
