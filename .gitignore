@@ -4,5 +4,10 @@ __pycache__/
 *.egg-info/
 .env
 .a0proj/
-.a0proj/
-.a0proj/**
+**/index.faiss
+**/index.pkl
+**/embedding.json
+node_modules/
+.npm/
+*.lock
+.DS_Store
