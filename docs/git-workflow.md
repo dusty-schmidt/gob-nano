@@ -41,14 +41,19 @@ git commit -m "Brief description of changes"
 
 ### 3. BEFORE MERGING
 
-**ALWAYS run tests first:**
+**ALWAYS run tests AND lint, fix any issues:**
 
 ```bash
 # Run the test suite
 python scripts/test.py
 
-# If tests fail, fix them before proceeding
+# Run lint check
+python scripts/lint.py
+
+# If tests fail or lint finds issues, fix them before proceeding
 ```
+
+**Lint issues must be fixed - do not skip or ignore warnings.**
 
 ### 4. MERGING TO MAIN
 
@@ -76,6 +81,8 @@ git branch -d task/your-branch-name
 |----------|---------|
 | Start new task | `git checkout -b task/name` |
 | Save work | `git add . && git commit -m "message"` |
+| Run tests | `python scripts/test.py` |
+| Run lint | `python scripts/lint.py` |
 | See status | `git status` |
 | See history | `git log --oneline` |
 | Switch branch | `git checkout branch-name` |
@@ -85,13 +92,17 @@ git branch -d task/your-branch-name
 
 ---
 
+---
+
 ## Rules
 
 1. **ALWAYS** branch from `main`
 2. **ALWAYS** run `python scripts/test.py` before merging
-3. **ALWAYS** pull `main` before creating a new branch
-4. **ALWAYS** delete task branches after merging
-5. **NEVER** push directly to `main` (always use a task branch)
+3. **ALWAYS** run `python scripts/lint.py` and fix all issues before merging
+4. **ALWAYS** pull `main` before creating a new branch
+5. **ALWAYS** delete task branches after merging
+6. **NEVER** push directly to `main` (always use a task branch)
+7. **NEVER** skip or ignore lint warnings
 
 ---
 
