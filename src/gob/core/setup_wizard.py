@@ -239,6 +239,10 @@ DISCORD_BOT_TOKEN=
         except Exception as e:
             print(f"❌ Config validation failed: {e}")
             all_passed = False
+        
+        return all_passed
+
+    def print_complete_message(self):
         """Print completion message"""
         print(f"\n{self.GREEN}═══════════════════════════════════════{self.NC}")
         print(f"{self.GREEN} 🎉 SETUP COMPLETE!{self.NC}")
@@ -250,7 +254,6 @@ DISCORD_BOT_TOKEN=
         print(f"   bash scripts/gob.sh            # TUI chat")
         print(f"   bash scripts/gob.sh --discord  # Discord bot")
         print()
-
     def run(self):
         """Run complete setup"""
         self.print_header()
