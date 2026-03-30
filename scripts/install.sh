@@ -283,9 +283,27 @@ log_info "Building ${IMAGE_NAME}:latest..."
 log_info "This may take a minute on first build..."
 echo
 
-docker-compose -f docker/docker-compose.yml build --no-cache
+# Run the build and capture output
+BUILD_OUTPUT=$(mktemp)
+if ! docker-compose -f docker/docker-compose.yml build --no-cache 2>&1 | tee "${BUILD_OUTPUT}"; then
+    log_error "Docker build failed! Check output above."
+    cat "${BUILD_OUTPUT}"
+    rm "${BUILD_OUTPUT}"
+    exit 1
+fi
 
+# Verify the image was created
+if ! docker image inspect ${IMAGE_NAME}:latest > /dev/null 2>&1; then
+    log_error "Docker image '${IMAGE_NAME}:latest' was not created!"
+    log_error "Build may have failed silently. Check your Dockerfile."
+    rm "${BUILD_OUTPUT}"
+    exit 1
+fi
+
+rm "${BUILD_OUTPUT}"
 log_success "Docker image built successfully"
+log_info "Image name: ${IMAGE_NAME}:latest"
+log_info "Container name: ${CONTAINER_NAME}"
 
 echo
 
@@ -298,9 +316,32 @@ log_section "Validating Installation"
 log_info "Running validation tests..."
 echo
 
-docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -q
+# Verify docker-compose.yml is valid
+if ! docker-compose -f docker/docker-compose.yml config > /dev/null 2>&1; then
+    log_error "Invalid docker-compose.yml configuration!"
+    exit 1
+fi
 
-log_success "All tests passed!"
+log_info "Docker compose configuration is valid"
+
+# Verify service exists in docker-compose.yml
+if ! docker-compose -f docker/docker-compose.yml config | grep -q "\"nano\""; then
+    log_error "Service 'nano' not found in docker-compose.yml!"
+    log_error "Check docker/docker-compose.yml for service definition."
+    exit 1
+fi
+
+log_info "Service 'nano' found in configuration"
+
+# Run the validation tests
+log_info "Running pytest inside container..."
+if ! docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -q 2>&1; then
+    log_error "Validation tests failed!"
+    log_info "You can still use gob-nano, but check the errors above."
+    log_info "Run tests manually: docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -v"
+else
+    log_success "All tests passed!"
+fi
 
 echo
 

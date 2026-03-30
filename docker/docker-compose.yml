@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   nano:
+    image: gob-nano:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: gob-nano
     stdin_open: true
     tty: true
     

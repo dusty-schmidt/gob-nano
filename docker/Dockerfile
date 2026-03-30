@@ -28,7 +28,8 @@ COPY tests ./tests
 COPY config ./config
 
 # Install package in editable mode
-RUN pip install --no-cache-dir -e .
+# Install package in editable mode with dev dependencies for testing
+RUN pip install --no-cache-dir -e ".[dev]"
 
 # Create necessary directories
 RUN mkdir -p /app/workdir /app/tmp /app/docker
