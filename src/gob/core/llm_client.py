@@ -14,7 +14,7 @@ class LLMClient:
     """Primary chat model client"""
     
     def __init__(self, model: str = None, api_key: str = None, base_url: str = None):
-        self.model = model or os.getenv("CHAT_MODEL", "openrouter/qwen/qwen3.5-flash-02-23")
+        self.model = model or os.getenv("CHAT_MODEL", "qwen/qwen3.5-flash")
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.base_url = base_url or "https://openrouter.ai/api/v1"
         self.timeout = 60
@@ -58,14 +58,18 @@ class LLMClient:
 
 
 class UtilityLLMClient:
-    """Cheap utility model for memory tasks"""
+    """Cheap utility model for memory tasks (can be local or API-based)"""
     
-    def __init__(self, model: str = None, api_key: str = None):
-        # Local Ollama model (free, fast for utility tasks)
-        self.model = model or os.getenv("UTILITY_MODEL", "ollama/llama3.2:1b")
-        self.base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.api_key = api_key
-        
+    def __init__(self, model: str = None, api_key: str = None, base_url: str = None):
+        self.model = model or os.getenv("UTILITY_MODEL", "qwen/qwen3.5-flash")
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+        # Determine base_url based on model type
+        if "ollama" in self.model:
+            self.base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        else:
+            # Assume OpenRouter or other OpenAI-compatible API
+            self.base_url = base_url or "https://openrouter.ai/api/v1"
+    
     async def generate(self, messages: List[Dict], max_tokens: int = 512) -> str:
         if "ollama" in self.model:
             # Ollama API call
@@ -76,24 +80,35 @@ class UtilityLLMClient:
                 "stream": False,
                 "options": {"temperature": 0.0, "num_predict": max_tokens}
             }
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload) as response:
-                    result = await response.json()
-                    return result["message"]["content"]
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(url, json=payload) as response:
+                        result = await response.json()
+                        return result["message"]["content"]
+            except Exception as e:
+                raise RuntimeError(f"Ollama call failed: {str(e)}")
         else:
-            # Fallback to standard OpenAI-like API (assuming generic utility model)
+            # OpenRouter or other OpenAI-compatible API
             url = f"{self.base_url}/chat/completions"
-            headers = {"Authorization": f"Bearer {self.api_key}"}
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+                "HTTP-Referer": "https://github.com/dusty-schmidt/gob-01",
+                "X-Title": "GOB-01 Agent"
+            }
             payload = {
                 "model": self.model,
                 "messages": messages,
-                "max_tokens": max_tokens
+                "max_tokens": max_tokens,
+                "temperature": 0.0
             }
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload, headers=headers) as response:
-                    result = await response.json()
-                    return result["choices"][0]["message"]["content"]
-
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(url, json=payload, headers=headers) as response:
+                        result = await response.json()
+                        return result["choices"][0]["message"]["content"]
+            except Exception as e:
+                raise RuntimeError(f"API call failed: {str(e)}")
 
 class EmbeddingClient:
     """Local embedding model using sentence-transformers"""

@@ -1,22 +1,30 @@
 agent:
   name: gob
   profile: default
+
 default_mode: tui
+
 discord:
   prefix: null
   token: ${DISCORD_BOT_TOKEN}
+
 llm:
   api_key: ${OPENROUTER_API_KEY}
   endpoint: https://openrouter.ai/api/v1
   max_tokens: 4096
-  model: qwen/qwen3.5-flash-02-23
-  provider: openrouter
   temperature: 0.7
+  # Primary chat model - used for all reasoning and responses
+  chat_model: qwen/qwen3.5-flash
+  # Utility model - cheap model for internal tasks (memory queries, summarization)
+  utility_model: qwen/qwen3.5-flash
+  # Embedding model - local sentence-transformers model name (no API cost)
+  embedding_model: all-MiniLM-L6-v2
+
 tools:
-  disabled: []
   enabled:
-  - response
-  - search_engine
-  - code_execution
-  - text_editor
-  - document_query
+    - response
+    - search_engine
+    - code_execution
+    - text_editor
+    - document_query
+  disabled: []
