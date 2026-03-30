@@ -231,11 +231,11 @@ DISCORD_BOT_TOKEN=
             sys.path.append(str(self.project_root))
             from src.gob.core.config_loader import load_config
             config = load_config()
-            if config.get("openrouter_api_key"):
+            llm_config = config.get("llm", {})
+            if llm_config.get("api_key"):
                 print(f"✓ LLM client configured (key found)")
             else:
                 print(f"⚠️  OpenRouter API key not found - agent needs key to run")
-        except Exception as e:
             print(f"❌ Config validation failed: {e}")
             all_passed = False
 
