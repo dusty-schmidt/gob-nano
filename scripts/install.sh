@@ -67,14 +67,46 @@ check_command() {
 # ───────────────────────────────────────────────────────────────────────────
 # Step 1: Check Prerequisites
 # ───────────────────────────────────────────────────────────────────────────
-
 log_section "Checking Prerequisites"
 
 check_command "git"
 log_success "Git is installed"
 
-check_command "docker"
-log_success "Docker is installed"
+# Check and install Docker if needed
+if ! command -v "docker" &> /dev/null; then
+    log_info "Docker is not installed. Installing..."
+    
+    # Detect OS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        log_info "Detected macOS. Installing Docker via Homebrew..."
+        if ! command -v "brew" &> /dev/null; then
+            log_error "Homebrew is required. Please install it first:"
+            echo "  /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            exit 1
+        fi
+        brew install docker docker-compose
+        log_success "Docker installed via Homebrew"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux (Ubuntu/Debian)
+        log_info "Detected Linux. Installing Docker..."
+        sudo apt-get update
+        sudo apt-get install -y docker.io docker-compose
+        # Add user to docker group
+        sudo usermod -aG docker "$USER"
+        log_success "Docker installed. Please log out and back in, or run: newgrp docker"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        # Windows
+        log_error "Windows detected. Please install Docker Desktop:"
+        echo "  https://www.docker.com/products/docker-desktop"
+        exit 1
+    else
+        log_error "Unsupported operating system: $OSTYPE"
+        exit 1
+    fi
+else
+    log_success "Docker is installed"
+fi
 
 check_command "docker-compose"
 log_success "Docker Compose is installed"
