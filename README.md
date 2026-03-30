@@ -4,33 +4,36 @@ A minimal, production-ready AI agent that treats Discord as the bridge for colla
 
 ---
 
-## Get Started
+## Install in One Command
 
 ```bash
-git clone https://github.com/dusty-schmidt/gob-01.git
-cd gob-01
-bash scripts/gob.sh
+curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-01/main/scripts/install.sh | bash
 ```
 
-That's it. The wizard handles everything:
-- Creates Python virtual environment
-- Installs all dependencies
-- Prompts for your [OpenRouter API key](https://openrouter.ai/keys) (free)
-- Optionally sets up Discord bot
-- Validates the installation
-
-**Total time:** ~2 minutes
+This installs GOB-01 to `~/.local/share/gob` and adds the `gob` command to your PATH.
 
 ---
 
 ## Usage
 
+After installation, just run:
+
 ```bash
-bash scripts/gob.sh            # TUI chat (default)
-bash scripts/gob.sh --tui      # TUI chat (explicit)
-bash scripts/gob.sh --discord  # Discord bot
-bash scripts/gob.sh setup      # Re-run setup wizard
+gob            # Start TUI chat
+gob --discord  # Start Discord bot
+gob --help     # See all options
 ```
+
+---
+
+## What You Get
+
+- **TUI Chat** – Terminal chat, works instantly
+- **Discord Bot** – 24/7 availability via @mention or DM
+- **Semantic Memory** – Remembers context across sessions (FAISS)
+- **Built-in Tools** – Web search, code execution, file editing, document reading
+- **Multi-LLM** – Routes tasks to cheap/expensive models to control cost
+- **Local Embeddings** – Offline vector search, no extra API cost
 
 ---
 
@@ -43,25 +46,14 @@ bash scripts/gob.sh setup      # Re-run setup wizard
 
 ---
 
-## What You Get
-
-- **TUI Chat** – Terminal chat, works instantly after setup
-- **Discord Bot** – 24/7 availability via @mention or DM
-- **Semantic Memory** – Remembers context across sessions (FAISS)
-- **Built-in Tools** – Web search, code execution, file editing, document reading
-- **Multi-LLM** – Routes tasks to cheap/expensive models to control cost
-- **Local Embeddings** – Offline vector search, no extra API cost
-
----
-
 ## Configuration
 
 All config lives in two files:
 
 | File | Purpose |
 |------|---------|
-| `.env` | API keys and secrets |
-| `config/config.yaml` | Models, tools, agent behavior |
+| `~/.local/share/gob/.env` | API keys and secrets |
+| `~/.local/share/gob/config/config.yaml` | Models, tools, agent behavior |
 
 See [docs/configuration.md](docs/configuration.md) for details.
 
@@ -69,29 +61,32 @@ See [docs/configuration.md](docs/configuration.md) for details.
 
 ## Troubleshooting
 
-**`Permission denied` on gob.sh**
-```bash
-chmod +x scripts/gob.sh
-```
+**Installation failed?**
+- Ensure Python 3.9+, git, and pip are installed
+- Check internet connectivity
 
-**`python3` not found**
-```bash
-sudo apt install python3 python3-venv python3-pip   # Debian/Ubuntu
-```
+**`gob` command not found?**
+- Reload your shell: `source ~/.bashrc` or `source ~/.zshrc`
+- Or open a new terminal
 
-**API key missing after setup**
+**API key missing after setup?**
+- Edit `~/.local/share/gob/.env` and add your OpenRouter key
+- Or run the installer again to re-prompt
+
+**Update GOB-01?**
 ```bash
-bash scripts/gob.sh setup   # Re-run wizard
+curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-01/main/scripts/install.sh | bash
 ```
+→ Detects existing install and offers to pull latest changes
 
 ---
 
 ## Documentation
 
-- [Configuration](docs/configuration.md)
-- [Tools](docs/tools.md)
-- [FAQ](docs/faq.md)
-- [Development](docs/development.md)
+- [Configuration](docs/configuration.md) – Detailed setup options
+- [Tools](docs/tools.md) – All available tools and usage
+- [FAQ](docs/faq.md) – Common questions
+- [Development](docs/development.md) – Extending GOB
 
 ---
 
