@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+
+from src.gob.helpers.setup_wizard import run_discord_wizard, run_api_key_wizard
 from src.gob.helpers.config_loader import load_config
 from src.gob.helpers.agent_loader import load_agent
 from src.gob.helpers.memory.memory import MemoryManager
@@ -17,6 +19,24 @@ from src.gob.orchestrator import AgentOrchestrator
 
 def main():
     """Initialize and run the NANO agent"""
+    # Check if API key configured, if not run setup wizard
+    api_key = os.getenv('OPENROUTER_API_KEY', '').strip()
+    if not api_key:
+        print("\n🚀 Welcome to Gob Agent!\n")
+        print("Let's get you set up...\n")
+        
+        # Discord setup first (optional)
+        discord_token = run_discord_wizard()
+        if discord_token:
+            with open('.env', 'a') as f:
+                f.write(f"\nDISCORD_BOT_TOKEN={discord_token}\n")
+            os.environ['DISCORD_BOT_TOKEN'] = discord_token
+        
+        # API key (required)
+        print()
+        run_api_key_wizard()
+        print("\n✅ Setup complete! Starting Gob...\n")
+    
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='GOB-GOB Agent')
     parser.add_argument(
