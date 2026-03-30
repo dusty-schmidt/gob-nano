@@ -236,10 +236,9 @@ DISCORD_BOT_TOKEN=
                 print(f"✓ LLM client configured (key found)")
             else:
                 print(f"⚠️  OpenRouter API key not found - agent needs key to run")
+        except Exception as e:
             print(f"❌ Config validation failed: {e}")
             all_passed = False
-
-    def print_complete_message(self):
         """Print completion message"""
         print(f"\n{self.GREEN}═══════════════════════════════════════{self.NC}")
         print(f"{self.GREEN} 🎉 SETUP COMPLETE!{self.NC}")
