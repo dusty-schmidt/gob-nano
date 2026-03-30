@@ -96,19 +96,48 @@ class UtilityLLMClient:
 
 
 class EmbeddingClient:
-    """Offline embedding model (no API cost)"""
+    """OpenAI-compatible embedding model for compatibility with existing FAISS index"""
     
-    def __init__(self, model: str = "all-MiniLM-L6-v2"):
-        self.model = SentenceTransformer(model)
+    def __init__(self, model: str = "openai/text-embedding-3-small", api_key: str = None, base_url: str = "https://openrouter.ai/api/v1"):
+        self.model = model
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+        self.base_url = base_url
     
     def embed(self, text: str) -> np.ndarray:
-        """Generate embedding vector for text"""
-        return self.model.encode(text)
+        """Generate OpenAI-compatible embedding vector"""
+        try:
+            import aiohttp
+            import asyncio
+            
+            url = f"{self.base_url}/embeddings"
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+                "HTTP-Referer": "https://github.com/dusty-schmidt/gob-01",
+                "X-Title": "GOB-01 Agent"
+            }
+            payload = {
+                "model": self.model,
+                "input": text,
+                "dimensions": 1536
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload, headers=headers) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise RuntimeError(f"Embedding API error: {response.status} - {error_text}")
+                    
+                    result = await response.json()
+                    return np.array(result["data"][0]["embedding"])
+                    
+        except Exception as e:
+            logger.error(f"Embedding call failed: {e}")
+            raise RuntimeError(f"Embedding generation failed: {str(e)}")
     
     def embed_batch(self, texts: List[str]) -> np.ndarray:
         """Generate batch embeddings"""
-        return self.model.encode(texts)
-
+        return np.array([self.embed(text).tolist() for text in texts])
 
 class MultiLLM:
     """Multi-LLM layer that routes tasks to appropriate models"""

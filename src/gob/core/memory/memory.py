@@ -17,11 +17,11 @@ class MemoryManager:
         base_dir = Path(__file__).parent
         self.db_path = base_dir / db_path
         
-        # Also look for FAISS index in parent directory (where .a0proj is)
-        project_root = base_dir.parent.parent.parent
+        # FAISS index is in .a0proj/memory/ inside project root
+        # base_dir is src/gob/core/memory, so parent.parent.parent.parent = project root
+        project_root = base_dir.parent.parent.parent.parent
         self.faiss_index_path = project_root / ".a0proj" / "memory" / "index.faiss"
         self.faiss_meta_path = project_root / ".a0proj" / "memory" / "index.pkl"
-        
         self._index: Optional['faiss.IndexFlatL2'] = None
         self._metadata: List[Dict] = []
         
@@ -36,14 +36,48 @@ class MemoryManager:
                 try:
                     self._index = faiss.read_index(str(self.faiss_index_path))
                     with open(self.faiss_meta_path, "rb") as f:
-                        self._metadata = pickle.load(f)
-                    logger.info(f"Loaded FAISS index with {len(self._metadata)} vectors")
+                        raw_meta = pickle.load(f)
+                    
+                    # Extract text content from LangChain InMemoryDocstore tuple format
+                    # raw_meta is a tuple: (InMemoryDocstore, dict)
+                    # The docstore contains Document objects with page_content
+                    self._metadata = []
+                    
+                    if isinstance(raw_meta, tuple) and len(raw_meta) >= 1:
+                        docstore = raw_meta[0]
+                        # docstore is an InMemoryDocstore object
+                        # It has a _dict attribute containing Document objects
+                        if hasattr(docstore, '_dict'):
+                            for doc in docstore._dict.values():
+                                if hasattr(doc, 'page_content'):
+                                    # Document.page_content contains the actual memory text
+                                    self._metadata.append({
+                                        "id": doc.metadata.get('id', -1),
+                                        "text": doc.page_content,
+                                        "area": doc.metadata.get('area', "main")
+                                    })
+                                elif isinstance(doc, str):
+                                    # Fallback if doc is raw string
+                                    self._metadata.append({
+                                        "id": -1,
+                                        "text": doc,
+                                        "area": "main"
+                                    })
+                    
+                    # Also create metadata index for backward compatibility
+                    if len(self._metadata) < self._index.ntotal:
+                        logger.warning(f"Extracted {len(self._metadata)} memories from docstore, but index has {self._index.ntotal} vectors")
+                        logger.info("Vector search will use extracted memories where available")
+                    
+                    logger.info(f"Loaded FAISS index with {self._index.ntotal} vectors and extracted {len(self._metadata)} text memories")
+                    
                 except Exception as e:
-                    logger.error(f"Could not load FAISS index: {e}")
+                    logger.error(f"Could not load FAISS index metadata: {e}")
+                    logger.error(f"Metadata will not be available for recall - vector search disabled")
+                    self._metadata = []
                     self._index = None
         except ImportError:
             logger.warning("faiss package not installed - vector search unavailable")
-    
     def vector_search(self, query: str, k: int = 5, area: str = "main") -> List[Dict]:
         """Search vector index and return relevant memories by similarity"""
         try:
@@ -60,17 +94,18 @@ class MemoryManager:
             # Search
             distances, indices = self._index.search(query_vec, k)
             
-            # Return results with score
+            # Return results with text content
             results = []
             for i, dist in zip(indices[0], distances[0]):
                 if i < len(self._metadata):
+                    # self._metadata now contains proper dicts with text field
+                    meta = self._metadata[i]
                     results.append({
-                        "id": self._metadata[i].get("id", i),
-                        "text": self._metadata[i].get("text", ""),
+                        "id": meta.get("id", i),
+                        "text": meta.get("text", ""),
                         "score": float(dist),
-                        "area": self._metadata[i].get("area", area)
+                        "area": meta.get("area", area)
                     })
-            
             return results
             
         except Exception as e:
