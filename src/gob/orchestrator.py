@@ -18,18 +18,11 @@ class AgentOrchestrator:
         memory: MemoryManager,
         agent_config: Dict[str, Any],
         tools_config: Dict[str, Any],
-        on_thinking=None,
-        on_result=None,
-        on_tool_execute=None,
     ):
         self.llm = llm_client
         self.memory = memory
         self.agent = agent_config
 
-        # Discord callbacks (optional)
-        self.on_thinking = on_thinking  # Called with (thinking_text)
-        self.on_result = on_result  # Called with (title, content)
-        self.on_tool_execute = on_tool_execute  # Called with (tool_name, params)
 
         # Extract enabled tools from agent config or tools config
         # Agent config takes precedence
@@ -406,11 +399,4 @@ If you don't need a tool, respond normally in plain text.
             "preferences": self.preferences,
         }
 
-    def process_message_stream(
-        self, user_message: str, conversation_id: Optional[str] = None
-    ):
-        """Process a message and stream the response (for TUI)"""
-        # For now, just yield the final response
-        # TODO: Implement true streaming with partial tool results
-        response = self.process_message(user_message, conversation_id)
-        yield response
+

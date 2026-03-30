@@ -84,7 +84,9 @@ def run_api_key_wizard() -> str:
     # Save to .env in project root
     from pathlib import Path
 
-    env_path = Path.cwd().parent.parent.parent / ".env"
+    # Project root is 4 levels up from this file: helpers -> gob -> src -> project_root
+    project_root = Path(__file__).parent.parent.parent.parent
+    env_path = project_root / ".env"
 
     with open(env_path, "a") as f:
         f.write(f"\nOPENROUTER_API_KEY={api_key}\n")

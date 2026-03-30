@@ -1,8 +1,6 @@
 """TUI Chat Interface for NANO - Simple terminal chat"""
 
 import os
-import sys
-from typing import Any, Dict, Optional
 
 from src.gob.helpers.memory.memory import MemoryManager
 from src.gob.orchestrator import AgentOrchestrator

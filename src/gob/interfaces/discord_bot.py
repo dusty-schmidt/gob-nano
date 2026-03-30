@@ -40,10 +40,7 @@ class GobDiscordBot(commands.Bot):
         )  # guild_id -> {channel_name: channel_id}
         self.active_guild_id: Optional[int] = None  # Track current guild for posting
 
-        # Set orchestrator callbacks for Discord integration
-        self.orchestrator.on_thinking = self._handle_thinking
-        self.orchestrator.on_result = self._handle_result
-        self.orchestrator.on_tool_execute = self._handle_tool_execute
+
 
     async def on_ready(self):
         """Called when bot is ready"""
@@ -78,21 +75,7 @@ class GobDiscordBot(commands.Bot):
         if self.user in message.mentions:
             await self._handle_conversation(message)
 
-    async def _handle_thinking(self, thinking: str):
-        """Handle thinking callback from orchestrator"""
-        if self.active_guild_id:
-            await self.post_thinking(self.active_guild_id, thinking)
 
-    async def _handle_result(self, title: str, content: str):
-        """Handle result callback from orchestrator"""
-        if self.active_guild_id:
-            await self.post_result(self.active_guild_id, title, content)
-
-    async def _handle_tool_execute(self, tool_name: str, params: Dict[str, Any]):
-        """Handle tool execution callback from orchestrator"""
-        if self.active_guild_id:
-            message = f"🔧 Using tool: **{tool_name}**"
-            await self.post_thinking(self.active_guild_id, message)
 
     async def _handle_conversation(self, message: discord.Message):
         """Handle a conversation message"""

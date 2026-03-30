@@ -17,15 +17,6 @@ def load_agent(profile: str = "default"):
     with open(agent_file, "r", encoding="utf-8") as f:
         agent_config = yaml.safe_load(f)
 
-    # Normalize agent config structure
-    # Merge model settings from agent config into a standardized format
-    if "model" in agent_config and isinstance(agent_config["model"], dict):
-        model_config = agent_config["model"]
-        # Ensure model name is accessible
-        if "name" in model_config:
-            agent_config["model_name"] = model_config["name"]
-        if "provider" in model_config:
-            agent_config["model_provider"] = model_config["provider"]
 
     # Set agent name if not present
     if "name" not in agent_config:

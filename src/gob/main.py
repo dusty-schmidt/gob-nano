@@ -21,25 +21,7 @@ from src.gob.orchestrator import AgentOrchestrator
 
 def main():
     """Initialize and run the NANO agent"""
-    # Check if API key configured, if not run setup wizard
-    api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-    if not api_key:
-        print("\n🚀 Welcome to Gob Agent!\n")
-        print("Let's get you set up...\n")
-
-        # Discord setup first (optional)
-        discord_token = run_discord_wizard()
-        if discord_token:
-            with open(".env", "a") as f:
-                f.write(f"\nDISCORD_BOT_TOKEN={discord_token}\n")
-            os.environ["DISCORD_BOT_TOKEN"] = discord_token
-
-        # API key (required)
-        print()
-        run_api_key_wizard()
-        print("\n✅ Setup complete! Starting Gob...\n")
-
-    # Parse command line arguments
+    # Parse command line arguments first
     parser = argparse.ArgumentParser(description="GOB-GOB Agent")
     parser.add_argument(
         "--mode",
@@ -79,28 +61,30 @@ def main():
         print(f"❌ Failed to initialize memory: {e}")
         sys.exit(1)
 
-    # Initialize LLM client
+    # Initialize LLM client with deferred setup
     try:
         llm_config = config.get("llm", {})
         llm = LLMClient(llm_config)
         print(f"✅ LLM client initialized: {llm.model}")
+    except ValueError as e:
+        if "API key not configured" in str(e):
+            print("\n🔑 OpenRouter API key is missing.")
+            print("Starting setup wizard...\n")
+            run_api_key_wizard()
+            # Reload config to pick up new env var
+            load_dotenv()
+            try:
+                llm = LLMClient(config.get("llm", {}))
+                print(f"✅ LLM client initialized: {llm.model}")
+            except Exception as retry_e:
+                print(f"❌ Failed to initialize LLM after setup: {retry_e}")
+                sys.exit(1)
+        else:
+            print(f"❌ Failed to initialize LLM: {e}")
+            sys.exit(1)
     except Exception as e:
         print(f"❌ Failed to initialize LLM: {e}")
         sys.exit(1)
-
-    # List available tools
-    try:
-        from src.gob.helpers.tool_loader import load_tool
-
-        enabled_tools = config.get("tools", {}).get("enabled", [])
-        print(f"✅ Enabled tools: {', '.join(enabled_tools)}")
-        for tool_name in enabled_tools:
-            try:
-                load_tool(tool_name)
-            except ImportError:
-                print(f"   ⚠️  Tool not found: {tool_name}")
-    except Exception as e:
-        print(f"❌ Failed to load tools: {e}")
 
     # Initialize orchestrator
     try:
@@ -126,7 +110,7 @@ def main():
         print("✅ Configuration validation complete")
         print(f"   Agent: {agent.get('name', 'Unknown')}")
         print(f"   Model: {llm.model}")
-        print(f"   Tools: {', '.join(enabled_tools)}")
+        print(f"   Tools: {', '.join(orchestrator.enabled_tools)}")
         print("")
         print("System is ready to run!")
         return
@@ -159,11 +143,27 @@ def main():
             print("")
 
     elif args.mode == "discord":
+        # Check if Discord is configured, if not, offer setup
+        discord_config = config.get("discord", {})
+        discord_token = discord_config.get("token", "")
+
+        if not discord_token or discord_token.startswith("${"):
+            print("\n🎮 Discord bot token is missing.")
+            print("Starting setup wizard...\n")
+            new_token = run_discord_wizard()
+            if new_token:
+                with open(".env", "a") as f:
+                    f.write(f"\nDISCORD_BOT_TOKEN={new_token}\n")
+                os.environ["DISCORD_BOT_TOKEN"] = new_token
+                discord_config["token"] = new_token
+            else:
+                print("\n⚠️  Skipping Discord setup. Exiting.")
+                return
+
         print("Starting Discord bot...")
         print("")
         from src.gob.interfaces.discord_bot import run_discord_bot
 
-        discord_config = config.get("discord", {})
         run_discord_bot(orchestrator, memory, discord_config)
 
 
