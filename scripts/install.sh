@@ -189,30 +189,47 @@ cd "${INSTALL_DIR}"
 log_section "Configuration Setup"
 
 # OpenRouter API Key
-echo "🔑 OpenRouter API Key"
-echo "   Get one at: https://openrouter.ai/keys"
+echo "🔑 OpenRouter API Key (Required)"
 echo
-read -p "Enter your OpenRouter API key: " OPENROUTER_API_KEY
+echo "   Step 1: Open this link in your browser:"
+echo "   ➜ https://openrouter.ai/keys"
+echo
+echo "   Step 2: Create a new API key if you don't have one"
+echo
+echo "   Step 3: Copy the key and paste it below"
+echo
 
-if [ -z "${OPENROUTER_API_KEY}" ]; then
-    log_error "OpenRouter API key is required"
-    exit 1
-fi
+OPENROUTER_API_KEY=""
+while [ -z "${OPENROUTER_API_KEY}" ]; do
+    read -p "Paste your OpenRouter API key: " OPENROUTER_API_KEY
+    if [ -z "${OPENROUTER_API_KEY}" ]; then
+        echo "❌ API key cannot be empty."
+        echo "   Please go to https://openrouter.ai/keys and get your key."
+        read -p "Press Enter to try again..."
+    fi
+done
 log_success "OpenRouter API key saved"
 
 echo
 
 # Discord Bot Token (optional)
 echo "🤖 Discord Bot Token (optional)"
-echo "   Skip to configure later, or enter token now."
-echo "   Get one at: https://discord.com/developers/applications"
 echo
+echo "   To set up Discord bot integration now:"
+echo "   Step 1: Open https://discord.com/developers/applications"
+echo "   Step 2: Create a new application and get the bot token"
+echo "   Step 3: Paste it below"
+echo
+echo "   Or press Enter to skip (configure later in .env)"
+echo
+
 read -p "Enter Discord bot token (or press Enter to skip): " DISCORD_BOT_TOKEN || DISCORD_BOT_TOKEN=""
 
 if [ -n "${DISCORD_BOT_TOKEN}" ]; then
     log_success "Discord bot token saved"
 else
-    log_info "Discord bot setup skipped (can configure later)"
+    log_info "Discord bot setup skipped"
+    echo "   📝 You can add it later by editing: \${INSTALL_DIR}/.env"
 fi
 
 echo
