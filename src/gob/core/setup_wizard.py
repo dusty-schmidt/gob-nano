@@ -227,6 +227,8 @@ DISCORD_BOT_TOKEN=
                 
         # Check LLM config
         try:
+            import sys
+            sys.path.append(str(self.project_root))
             from src.gob.core.config_loader import load_config
             config = load_config()
             if config.get("openrouter_api_key"):
@@ -236,8 +238,6 @@ DISCORD_BOT_TOKEN=
         except Exception as e:
             print(f"❌ Config validation failed: {e}")
             all_passed = False
-            
-        return all_passed
 
     def print_complete_message(self):
         """Print completion message"""
