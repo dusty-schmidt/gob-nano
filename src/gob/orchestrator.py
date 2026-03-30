@@ -106,25 +106,52 @@ If you don't need a tool, respond normally in plain text.
     async def process_message(self, message: str, conversation_id: str = "default") -> str:
         """Run agent loop: get response, execute tools, loop until final answer"""
         # Retrieve relevant memories first (async call to utility model)
-        if hasattr(self.memory, 'get_all'):
-            # Simple recall logic: use last messages as context for utility query
-            recent_context = "\n".join([m.get('content', '') for m in self.messages[-5:]])
+        recall_injection = ""
+        if hasattr(self.memory, 'get_vector_based_memories'):
+            # Build context from recent messages for smart recall
+            recent_context = "\n".join([
+                m.get('content', '') for m in self.messages[-5:] 
+            ])
             
-            # Use utility model to generate a search query (cheaper than chat model)
+            # If no recent messages, use the user's new message
+            if not recent_context:
+                recent_context = message
+            
+            # Use utility model to generate a semantic search query (cheaper than chat model)
             if hasattr(self.llm, 'generate_query'):
-                recall_query = await self.llm.generate_query(recent_context, "memory retrieval")
+                try:
+                    recall_query = await self.llm.generate_query(recent_context, "memory retrieval")
+                except Exception:
+                    recall_query = recent_context  # Fallback if generation fails
             else:
                 recall_query = recent_context
             
-            # Search memory (placeholder for vector store integration)
-            pass
-
+            # Search vector store for relevant memories
+            recalled = self.memory.get_vector_based_memories(recall_query, limit=8)
+            
+            if recalled:
+                # Format recalled memories for injection into system prompt
+                memory_str = "\n\n# Relevant Memories on the Topic\n"
+                memory_str += "Following are facts and context about the current topic.\n"
+                memory_str += "- Do not overly rely on them - they might not be relevant.\n\n"
+                memory_str += "\n\n".join([
+                    f"-{result.get('text', '')[:500]}..."
+                    for result in recalled
+                ])
+                recall_injection = memory_str
+        
         # Build system prompt with tools
-        system_prompt = self._system_prompt
+        base_prompt = self._build_system_prompt()
+        
+        # Add memory recall to system prompt if available
+        if recall_injection:
+            system_prompt = base_prompt + recall_injection
+        else:
+            system_prompt = base_prompt
+            
         self.messages = [{"role": "system", "content": system_prompt}]
         
-        # Add user message
-        self.messages.append({"role": "user", "content": message})
+        # Add user message to history
 
         for iteration in range(self.max_iterations):
             try:
