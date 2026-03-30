@@ -95,14 +95,6 @@ class UtilityLLMClient:
                     return result["choices"][0]["message"]["content"]
 
 
-import os
-import numpy as np
-from typing import List, Dict
-import logging
-from sentence_transformers import SentenceTransformer
-
-logger = logging.getLogger(__name__)
-
 class EmbeddingClient:
     """Local embedding model using sentence-transformers"""
     
