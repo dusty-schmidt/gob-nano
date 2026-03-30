@@ -26,6 +26,7 @@ class GOBSetup:
         self.RED = "\033[0;31m"
         self.BLUE = "\033[0;34m"
         self.NC = "\033[0m"
+
     def print_header(self):
         """Print colored header"""
         print("")
@@ -45,6 +46,7 @@ class GOBSetup:
         """Return colored text"""
         end_color = "\033[0m"
         return f"{color}{text}{end_color}"
+
     def check_python_version(self) -> bool:
         """Check Python 3.9+ requirement"""
         version = (sys.version_info.major, sys.version_info.minor)
@@ -59,13 +61,7 @@ class GOBSetup:
         """Check git and pip"""
         checks = [
             ("git", "Git command"),
-            ("pip", "pip package manager"),
-        ]
-    def check_prerequisites(self) -> bool:
-        """Check git and pip"""
-        checks = [
-            ("git", "Git"),
-            ("pip3", "pip"),
+            ("pip3", "pip package manager"),
         ]
         for cmd, desc in checks:
             if not shutil.which(cmd):
@@ -112,23 +108,15 @@ class GOBSetup:
         """Install all required Python packages"""
         print("Installing Python dependencies...")
         
-        # Activate venv
         venv_python = str(self.venv_path / "bin" / "python") if sys.platform != "win32" else str(self.venv_path / "Scripts" / "python.exe")
         
         try:
-            # Upgrade pip first
             subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True, capture_output=True)
-            
-            # Install pyproject.toml dependencies
-            subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], 
-                          cwd=str(self.project_root), check=True, capture_output=True)
-            
+            subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], cwd=str(self.project_root), check=True, capture_output=True)
             self.print_colored("✓ All dependencies installed", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
             print(f"❌ Failed to install dependencies: {e}")
-            if e.stdout:
-                print(e.stdout.decode()[:500])
             return False
 
     def create_env_file(self):
@@ -151,17 +139,6 @@ DISCORD_BOT_TOKEN=
                 f.write(env_template)
             self.print_colored("✓ .env file created", "\033[0;32m")
 
-    def prompt_api_key(self) -> Optional[str]:
-        """Prompt for OpenRouter API key"""
-        print()
-        print("─" * 70)
-        print(" 🔑 Step 1: OpenRouter API Key (REQUIRED)")
-        print("─" * 70)
-        print()
-        print(" GOB needs an LLM to work. Get your free key at:")
-        print(" https://openrouter.ai/keys")
-        print()
-        
     def prompt_api_key(self):
         """Prompt for OpenRouter API key"""
         print(f"\n{self.section_break}")
@@ -192,163 +169,102 @@ DISCORD_BOT_TOKEN=
             print(f"{self.colored('✓ API key configured', self.GREEN)}")
         else:
             print(f"{self.colored('⚠️  No API key provided', self.YELLOW)}")
-                
-        print()
-        print("─" * 70)
-        print(" 🎮 Step 2: Discord Bot Token (OPTIONAL)")
-        print("─" * 70)
-        print()
-        print(" Set up Discord bot for 24/7 availability")
-        print()
-        
-        response = input(" Set up Discord bot now? (y/n): ").strip().lower()
-        
-        if response != "y" and response != "Y":
-            print("⚠️  Discord setup skipped")
-            return None
-        
-        print()
-        print(" Discord Bot Setup Instructions:")
-        print(" 1. Go to https://discord.com/developers/applications")
-        print(" 2. Create new application → 'GOB Agent'")
-        print(" 3. Bot tab → Add Bot → Reset Token → Copy token")
-        print(" 4. OAuth2 → URL Generator → scopes: bot")
-        print(" 5. Permissions: Send Messages, Read History, Manage Channels, Manage Guild")
-        print()
-        
-        print("Paste your Discord bot token below:")
-        token = input().strip()
-        
-        if token:
-            self._save_env_var("DISCORD_BOT_TOKEN", token)
-            print("✓ Discord token configured")
-            return token
-        
-        print("⚠️  No Discord token provided")
-        return None
 
-    def _save_env_var(self, key: str, value: str):
-        """Save environment variable to .env file"""
-        # Read existing .env
-        env_vars = {}
-        if self.env_path.exists():
-            with open(self.env_path, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and "=" in line and not line.startswith("#"):
-                        k, v = line.split("=", 1)
-                        env_vars[k.strip()] = v.strip()
+    def prompt_discord_token(self):
+        """Prompt for Discord Bot Token"""
+        print(f"\n{self.section_break}")
+        print(" 🎮 Step 2: Discord Bot Token (OPTIONAL)")
+        print(f"{self.section_break}\n")
         
-        # Update and write back
-        env_vars[key] = value
-        with open(self.env_path, "w") as f:
-            for k, v in env_vars.items():
-                f.write(f"{k}={v}\n")
+        print("Set up Discord bot for 24/7 availability\n")
+        
+        # Check if token is provided in environment
+        env_token = os.environ.get("DISCORD_BOT_TOKEN")
+        if env_token:
+            print("Found Discord bot token in environment.")
+            self.update_env_file("DISCORD_BOT_TOKEN", env_token)
+            print(f"{self.colored('✓ Discord token configured from environment', self.GREEN)}")
+            return
+            
+        print("Set up Discord bot now? (y/n): ", end="")
+        
+        # Check if running interactively
+        if sys.stdin.isatty():
+            choice = input().strip().lower()
+        else:
+            # Non-interactive mode (piped input) - default to n
+            choice = "n"
+            
+        if choice == 'y':
+            print("\nEnter your Discord bot token:")
+            token = input("> ").strip()
+            if token:
+                self.update_env_file("DISCORD_BOT_TOKEN", token)
+                print(f"{self.colored('✓ Discord token configured', self.GREEN)}")
+            else:
+                print(f"{self.colored('⚠️  No token provided', self.YELLOW)}")
+        else:
+            print(f"{self.colored('⚠️  Discord setup skipped', self.YELLOW)}")
 
     def validate_installation(self) -> bool:
         """Validate that installation works"""
-        print()
-        print("─" * 70)
+        print(f"\n{self.section_break}")
         print(" 🔍 Step 3: Validate Installation")
-        print("─" * 70)
-        print()
+        print(f"{self.section_break}\n")
         
-        # Check Python in venv
-        venv_python = str(self.venv_path / "bin" / "python") if sys.platform != "win32" else str(self.venv_path / "Scripts" / "python.exe")
+        checks = [
+            ("Python environment configured", self.venv_path.exists()),
+            ("Config file exists", self.config_path.exists()),
+        ]
         
-        try:
-            result = subprocess.run([venv_python, "-c", "import sys; print(sys.version)"], 
-                                  capture_output=True, text=True, timeout=30)
-            if result.returncode == 0:
-                self.print_colored("✓ Python environment configured", "\033[0;32m")
+        all_passed = True
+        for desc, check in checks:
+            if check:
+                print(f"✓ {desc}")
             else:
-                print("❌ Python not working")
-                return False
-        except Exception as e:
-            print(f"❌ Validation failed: {e}")
-            return False
-        
-        # Check dependencies
+                print(f"❌ {desc}")
+                all_passed = False
+                
+        # Check LLM config
         try:
-            result = subprocess.run([venv_python, "-c", 
-                "import discord, yaml, requests, httpx, faiss, sentence_transformers, numpy; print('OK')"], 
-                capture_output=True, text=True, timeout=30)
-            if result.returncode == 0:
-                self.print_colored("✓ All required packages installed", "\033[0;32m")
+            from src.gob.core.config_loader import load_config
+            config = load_config()
+            if config.get("openrouter_api_key"):
+                print(f"✓ LLM client configured (key found)")
             else:
-                print("❌ Some packages missing")
-                return False
+                print(f"⚠️  OpenRouter API key not found - agent needs key to run")
         except Exception as e:
-            print(f"❌ Package validation failed: {e}")
-            return False
-        
-        # Check config
-        if self.config_path.exists():
-            self.print_colored("✓ Config file exists", "\033[0;32m")
-        else:
-            print("⚠️  Config file missing (will be created on first run)")
-        
-        # Test LLM connection
-        api_key = self._get_env_var("OPENROUTER_API_KEY")
-        if api_key:
-            try:
-                from src.gob.core.llm_client import LLMClient
-                client = LLMClient()
-                self.print_colored("✓ LLM client configured (key found)", "\033[0;32m")
-            except Exception as e:
-                print(f"⚠️  LLM client: {e}")
-        else:
-            print("⚠️  OpenRouter API key not found - agent needs key to run")
-        
-        print()
-        self.print_colored("═══════════════════════════════════════════════", "\033[0;32m")
-        print(" ✓ VALIDATION COMPLETE")
-        print("═══════════════════════════════════════════════")
-        return True
-    
-    def _get_env_var(self, key: str) -> Optional[str]:
-        """Get environment variable from .env file"""
-        if self.env_path.exists():
-            with open(self.env_path, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith(f"{key}="):
-                        return line.split("=", 1)[1].strip()
-        return None
+            print(f"❌ Config validation failed: {e}")
+            all_passed = False
+            
+        return all_passed
 
     def print_complete_message(self):
-        """Print setup complete instructions"""
+        """Print completion message"""
+        print(f"\n{self.GREEN}═══════════════════════════════════════{self.NC}")
+        print(f"{self.GREEN} 🎉 SETUP COMPLETE!{self.NC}")
+        print(f"{self.GREEN}═══════════════════════════════════════{self.NC}")
         print()
-        print("=" * 70)
-        print(" 🎉 SETUP COMPLETE!")
-        print("=" * 70)
+        print(f"{self.BLUE} 📍 Project: {self.project_root.absolute()}{self.NC}")
         print()
-        print(f" 📍 Project: {self.project_root}")
-        print()
-        print(" ▶  Start GOB:")
-        print("   bash scripts/gob.sh            # TUI chat")
-        print("   bash scripts/gob.sh --discord  # Discord bot")
-        print()
-        print(" 📚 Documentation: README.md")
+        print(f"{self.BLUE} ▶  Start GOB:{self.NC}")
+        print(f"   bash scripts/gob.sh            # TUI chat")
+        print(f"   bash scripts/gob.sh --discord  # Discord bot")
         print()
 
     def run(self):
         """Run complete setup"""
         self.print_header()
         
-        # Step 1: Check prerequisites
+        # Step 1: System Checks
         print("─" * 70)
         print(" ✅ Step 1: System Checks")
         print("─" * 70)
         
         if not self.check_python_version():
-            print("\n❌ Setup failed - Python 3.9+ required")
             return False
-        
         if not self.check_prerequisites():
-            print("\n❌ Setup failed - missing prerequisites")
             return False
-        
         print()
         
         # Step 2: Create environment
@@ -357,13 +273,9 @@ DISCORD_BOT_TOKEN=
         print("─" * 70)
         
         if not self.create_venv():
-            print("\n❌ Setup failed - venv creation")
             return False
-        
         if not self.install_dependencies():
-            print("\n❌ Setup failed - dependency installation")
             return False
-        
         self.create_env_file()
         print()
         
