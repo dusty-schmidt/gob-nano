@@ -1,10 +1,29 @@
-"""Configuration loader for NANO"""
+"""Configuration loader for GOB-01"""
 
 import os
 import re
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
+
+
+def load_config():
+    """Load the main config.yaml file from the config directory"""
+    # Load .env file from project root into os.environ
+    project_root = Path(__file__).parent.parent.parent.parent
+    env_file = project_root / ".env"
+    if env_file.exists():
+        load_dotenv(env_file, override=False)
+
+    # Navigate from src/gob/core/ up to project root
+    config_path = project_root / "config" / "config.yaml"
+    if not config_path.is_file():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    # Resolve environment variables
+    return resolve_config_env_vars(config)
 
 
 def resolve_env_vars(value):
@@ -29,13 +48,3 @@ def resolve_config_env_vars(config):
         return resolve_env_vars(config)
 
 
-def load_config():
-    """Load the main config.yaml file from the config directory"""
-    # Navigate from src/gob/helpers/ up to project root
-    config_path = Path(__file__).parent.parent.parent.parent / "config" / "config.yaml"
-    if not config_path.is_file():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-    # Resolve environment variables
-    return resolve_config_env_vars(config)
