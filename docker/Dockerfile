@@ -15,26 +15,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY . /app/
+# Copy only project metadata files first
+COPY pyproject.toml MANIFEST.in ./
+COPY README.md ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e .
+# Install build dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install Playwright for browser automation (can be removed if not needed)
-RUN pip install --no-cache-dir playwright && \
-    playwright install chromium
+# Copy source code
+COPY src ./src
+COPY tests ./tests
+COPY config ./config
+
+# Install package in editable mode
+RUN pip install --no-cache-dir -e .
 
 # Create necessary directories
-RUN mkdir -p /app/workdir /app/tmp
+RUN mkdir -p /app/workdir /app/tmp /app/docker
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app:$PYTHONPATH
 
-# Load .env at runtime
+# Create entrypoint script to load .env
 RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'if [ -f .env ]; then' >> /entrypoint.sh && \
     echo '  set -a' >> /entrypoint.sh && \
@@ -44,6 +48,6 @@ RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'exec "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-# Default command - can be overridden
+# Default entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "-m", "nano.main"]
