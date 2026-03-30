@@ -21,60 +21,123 @@ class AgentOrchestrator:
         self.llm = llm_client
         self.memory = memory
         self.agent = agent_config
-        self.enabled_tools = tools_config.get('enabled', [])
-        self.max_iterations = agent_config.get('settings', {}).get('max_iterations', 5)
-
+        
+        # Extract enabled tools from agent config or tools config
+        # Agent config takes precedence
+        agent_tools = agent_config.get('tools', [])
+        config_tools = tools_config.get('enabled', [])
+        self.enabled_tools = agent_tools if agent_tools else config_tools
+        
+        # Get settings from agent config
+        agent_settings = agent_config.get('settings', {})
+        self.max_iterations = agent_settings.get('max_iterations', 5)
+        self.retry_on_error = agent_settings.get('retry_on_error', True)
+        self.auto_suggest_tools = agent_settings.get('auto_suggest_tools', False)
+        
+        # Get preferences
+        self.preferences = agent_config.get('preferences', {})
+        
+        # Build and cache system prompt
+        self._system_prompt = self._build_system_prompt()
+        
     def _build_system_prompt(self) -> str:
         """Build system prompt from agent configuration"""
+        # Get context from agent config (the system prompt)
         context = self.agent.get('context', '')
+        
+        # Get agent metadata
+        agent_name = self.agent.get('name', 'GOB-NANO')
+        agent_desc = self.agent.get('description', 'AI assistant')
+        
+        # Build tools description
         tools_desc = self._get_tools_description()
+        
+        # Get preferences
+        verbose = self.preferences.get('verbose_outputs', False)
+        include_timestamps = self.preferences.get('include_timestamps', True)
+        
+        # Construct the system prompt
+        system_prompt_parts = []
+        
+        # Add agent identity
+        if context:
+            system_prompt_parts.append(context.strip())
+        else:
+            system_prompt_parts.append(f"You are {agent_name}, {agent_desc}.")
+        
+        # Add available tools info
+        if tools_desc:
+            system_prompt_parts.append(f"\nYou have access to the following tools:")
+            system_prompt_parts.append(tools_desc)
+        
+        # Add environment info
+        system_prompt_parts.append("""
+Environment Info:
+- You are running in a full Arch Linux container
+- You have access to: pacman (package manager), pip (Python packages), all standard Linux commands
+- You can install packages at runtime when needed via 'pip install <package>' or 'pacman -S <package>'
+- You can read/write files, execute code, search the web, and query documents
+""")
+        
+        # Add behavior guidelines based on preferences
+        behavior_parts = []
+        if not verbose:
+            behavior_parts.append("Be concise and direct in your responses.")
+        if include_timestamps:
+            behavior_parts.append("Include timestamps when relevant.")
+        
+        if behavior_parts:
+            system_prompt_parts.append("\nBehavior Guidelines:")
+            system_prompt_parts.append(" ".join(behavior_parts))
+        
+        # Add tool usage format
+        system_prompt_parts.append("""
+Tool Usage:
+When you need to use a tool, respond with a JSON object:
+{"tool": "tool_name", "params": {"param1": "value1"}}
 
-        return f"""{context}
-
-You have access to the following tools:
-{tools_desc}
-
-When you need to use a tool, respond with a JSON object in this format:
-{{"tool": "tool_name", "params": {{"param1": "value1"}}}}
-
-If you don't need a tool, respond normally.
-
-Remember: You are running in a full Arch Linux container with access to:
-- pacman (package manager)
-- pip (Python packages)
-- All standard Linux commands
-- You can install packages at runtime when needed
-"""
+If you don't need a tool, respond normally in plain text.
+""")
+        
+        return "\n".join(system_prompt_parts).strip()
 
     def _get_tools_description(self) -> str:
         """Get description of available tools"""
         descriptions = []
         tool_specs = {
             'response': 'Send a text response to the user',
-            'search_engine': 'Search the web for information (requires DDG package)',
-            'code_execution': 'Execute Python code or terminal commands',
-            'text_editor': 'Read, write, or modify files',
-            'document_query': 'Read and query document contents'
+            'search_engine': 'Search the web for information using DuckDuckGo (auto-installs if needed)',
+            'code_execution': 'Execute Python code or bash commands in the container',
+            'text_editor': 'Read, write, or modify files (read, write, patch actions)',
+            'document_query': 'Read and parse document contents (txt, md, json, etc.)'
         }
 
         for tool_name in self.enabled_tools:
             desc = tool_specs.get(tool_name, 'No description available')
-            descriptions.append(f"  - {tool_name}: {desc}")
+            descriptions.append(f"  • {tool_name}: {desc}")
 
-        return '\n'.join(descriptions)
+        return '\n'.join(descriptions) if descriptions else "No tools configured."
 
-    def _format_tool_for_llm(self, tool_name: str) -> Dict[str, Any]:
+    def _format_tool_for_llm(self, tool_name: str) -> Optional[Dict[str, Any]]:
         """Format tool specification for LLM function calling"""
         tool_specs = {
             'search_engine': {
                 "type": "function",
                 "function": {
                     "name": "search_engine",
-                    "description": "Search the web for information",
+                    "description": "Search the web for information using DuckDuckGo",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Search query"}
+                            "query": {
+                                "type": "string", 
+                                "description": "Search query string"
+                            },
+                            "max_results": {
+                                "type": "integer",
+                                "description": "Maximum number of results (default 5)",
+                                "default": 5
+                            }
                         },
                         "required": ["query"]
                     }
@@ -84,12 +147,20 @@ Remember: You are running in a full Arch Linux container with access to:
                 "type": "function",
                 "function": {
                     "name": "code_execution",
-                    "description": "Execute Python code or shell commands",
+                    "description": "Execute Python code or bash commands",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "code": {"type": "string", "description": "Python code to execute"},
-                            "language": {"type": "string", "enum": ["python", "bash"], "default": "python"}
+                            "code": {
+                                "type": "string", 
+                                "description": "Code or command to execute"
+                            },
+                            "language": {
+                                "type": "string", 
+                                "enum": ["python", "bash"],
+                                "description": "Language: 'python' or 'bash'",
+                                "default": "python"
+                            }
                         },
                         "required": ["code"]
                     }
@@ -103,9 +174,19 @@ Remember: You are running in a full Arch Linux container with access to:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "action": {"type": "string", "enum": ["read", "write", "patch"]},
-                            "path": {"type": "string", "description": "File path"},
-                            "content": {"type": "string", "description": "Content for write/patch"}
+                            "action": {
+                                "type": "string", 
+                                "enum": ["read", "write", "patch"],
+                                "description": "Action to perform"
+                            },
+                            "path": {
+                                "type": "string", 
+                                "description": "File path"
+                            },
+                            "content": {
+                                "type": "string", 
+                                "description": "Content for write/patch operations"
+                            }
                         },
                         "required": ["action", "path"]
                     }
@@ -119,7 +200,10 @@ Remember: You are running in a full Arch Linux container with access to:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "path": {"type": "string", "description": "Document path"}
+                            "path": {
+                                "type": "string", 
+                                "description": "Path to document file"
+                            }
                         },
                         "required": ["path"]
                     }
@@ -135,39 +219,66 @@ Remember: You are running in a full Arch Linux container with access to:
             tool_module = load_tool(tool_name)
 
             if tool_name == 'response':
-                return params.get('message', 'No response provided')
+                return params.get('message', params.get('content', 'No response provided'))
 
             elif tool_name == 'search_engine':
+                query = params.get('query', '')
+                max_results = params.get('max_results', 5)
+                
                 if hasattr(tool_module, 'search'):
-                    return tool_module.search(params.get('query', ''))
-                return "Search not implemented. Try installing duckduckgo-search via pip."
+                    return tool_module.search(query, max_results)
+                elif hasattr(tool_module, 'execute'):
+                    return tool_module.execute(query, max_results)
+                return "Search not available. Try installing duckduckgo-search via pip."
 
             elif tool_name == 'code_execution':
+                code = params.get('code', '')
+                language = params.get('language', 'python')
+                
                 if hasattr(tool_module, 'execute'):
-                    return tool_module.execute(
-                        params.get('code', ''),
-                        params.get('language', 'python')
-                    )
-                return "Code execution not implemented."
+                    return tool_module.execute(code, language)
+                elif hasattr(tool_module, 'run'):
+                    return tool_module.run(code, language=language)
+                return "Code execution not available."
 
             elif tool_name == 'text_editor':
-                if hasattr(tool_module, 'read') and params.get('action') == 'read':
-                    return tool_module.read(params.get('path', ''))
-                elif hasattr(tool_module, 'write') and params.get('action') == 'write':
-                    return tool_module.write(params.get('path', ''), params.get('content', ''))
-                elif hasattr(tool_module, 'patch') and params.get('action') == 'patch':
-                    return tool_module.patch(params.get('path', ''), params.get('content', ''))
-                return "Text editor action not implemented."
+                action = params.get('action', 'read')
+                path = params.get('path', '')
+                content = params.get('content', '')
+                
+                if action == 'read' and hasattr(tool_module, 'read'):
+                    result = tool_module.read(path)
+                    if isinstance(result, dict):
+                        return result.get('content', str(result))
+                    return str(result)
+                elif action == 'write' and hasattr(tool_module, 'write'):
+                    result = tool_module.write(path, content)
+                    if isinstance(result, dict):
+                        if result.get('success'):
+                            return f"File written successfully: {path}"
+                        return f"Error: {result.get('error', 'Unknown error')}"
+                    return str(result)
+                elif action == 'patch' and hasattr(tool_module, 'patch'):
+                    result = tool_module.patch(path, content)
+                    return str(result)
+                return f"Text editor action '{action}' not available."
 
             elif tool_name == 'document_query':
+                path = params.get('path', '')
+                
                 if hasattr(tool_module, 'read_document'):
-                    return tool_module.read_document(params.get('path', ''))
-                return "Document query not implemented."
+                    return tool_module.read_document(path)
+                elif hasattr(tool_module, 'query'):
+                    return tool_module.query(path)
+                return "Document query not available."
 
             return f"Tool {tool_name} not implemented"
 
         except Exception as e:
-            return f"Error executing {tool_name}: {str(e)}"
+            error_msg = f"Error executing {tool_name}: {str(e)}"
+            if self.retry_on_error:
+                error_msg += " (retry_on_error is enabled)"
+            return error_msg
 
     def process_message(self, user_message: str, conversation_id: Optional[str] = None) -> str:
         """Process a user message through the agent loop"""
@@ -178,8 +289,8 @@ Remember: You are running in a full Arch Linux container with access to:
             'conversation_id': conversation_id
         })
 
-        # Build conversation history
-        messages = [{'role': 'system', 'content': self._build_system_prompt()}]
+        # Build conversation history with system prompt
+        messages = [{'role': 'system', 'content': self._system_prompt}]
 
         # Add recent memory entries (last 10)
         recent_entries = self.memory.get_all()[-10:]
@@ -244,11 +355,6 @@ Remember: You are running in a full Arch Linux container with access to:
                         'content': str(result)
                     })
 
-                    # If it's a terminal response tool, we're done
-                    if tool_name == 'response':
-                        final_response = params.get('message', result)
-                        break
-
                 else:
                     # No tool call, direct response
                     final_response = message.get('content', 'No response')
@@ -270,9 +376,24 @@ Remember: You are running in a full Arch Linux container with access to:
 
         return final_response
 
+    def get_system_prompt(self) -> str:
+        """Get the current system prompt (for debugging/display)"""
+        return self._system_prompt
+
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Get agent configuration info"""
+        return {
+            'name': self.agent.get('name', 'Unknown'),
+            'description': self.agent.get('description', ''),
+            'enabled_tools': self.enabled_tools,
+            'max_iterations': self.max_iterations,
+            'retry_on_error': self.retry_on_error,
+            'preferences': self.preferences
+        }
+
     def process_message_stream(self, user_message: str, conversation_id: Optional[str] = None):
         """Process a message and stream the response (for TUI)"""
-        # This is a simplified version for streaming
         # For now, just yield the final response
+        # TODO: Implement true streaming with partial tool results
         response = self.process_message(user_message, conversation_id)
         yield response

@@ -23,5 +23,5 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
     
-    # Keep container running
-    restart: unless-stopped
+    # Command to run (can be overridden)
+    command: python -m src.nano.main --mode tui

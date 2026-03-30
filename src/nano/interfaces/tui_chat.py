@@ -7,37 +7,73 @@ from src.nano.orchestrator import AgentOrchestrator
 from src.nano.helpers.memory.memory import MemoryManager
 
 
+# ANSI color codes
+class Colors:
+    """ANSI color codes for terminal output"""
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    DIM = '\033[2m'
+    
+    # User colors - Perfectly matched Bold Cyan
+    USER_FG = '\033[36;1m'  
+    USER_PROMPT = '\033[36;1m'
+    
+    # Agent colors - Perfectly matched Bold Yellow
+    AGENT_FG = '\033[33;1m'  
+    AGENT_PROMPT = '\033[33;1m'
+    
+    # System colors
+    HEADER = '\033[35m'  # Magenta
+    INFO = '\033[34m'    # Blue
+    SUCCESS = '\033[32m' # Green
+    WARNING = '\033[33m' # Yellow
+    ERROR = '\033[31m'   # Red
+    
+    # Neutral
+    BORDER = '\033[37m'  # White/Gray
+    TEXT = '\033[0m'     # Default
+
+
 def clear_screen():
     """Clear the terminal screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def print_banner(agent_name: str, model: str):
+def print_banner(agent_name: str, model: str, description: str = ""):
     """Print the welcome banner"""
-    banner = f"""
+    name_upper = agent_name.upper()
+    banner = f"""{Colors.BORDER}
 ╔════════════════════════════════════════════════════════════════════╗
-║                    GOB-NANO Agent - TUI Mode                        ║
+║                    {name_upper:<15} - TUI Mode                      ║
 ║              Ultra-minimal AI agent for edge devices                ║
-╚════════════════════════════════════════════════════════════════════╝
+╚════════════════════════════════════════════════════════════════════╝{Colors.RESET}
 
-  Agent: {agent_name}
-  Model: {model}
+  Agent: {Colors.AGENT_FG}{agent_name}{Colors.RESET}
+  Model: {Colors.INFO}{model}{Colors.RESET}
+  {description}
   
   Type your messages below. Commands:
     /help     - Show help
     /clear    - Clear conversation history
+    /restart  - Restart session and clear screen
     /tools    - List available tools
     /status   - Show system status
+    /prompt   - View system prompt
     /exit     - Exit the chat
 
-══════════════════════════════════════════════════════════════════════
+{Colors.BORDER}══════════════════════════════════════════════════════════════════════{Colors.RESET}
 """
     print(banner)
 
 
-def format_message(role: str, content: str, max_width: int = 70) -> str:
-    """Format a chat message with word wrapping"""
-    prefix = "🧑 You:      " if role == "user" else "🤖 NANO:     "
+def format_message(role: str, content: str, agent_name: str = "gob", max_width: int = 70) -> str:
+    """Format a chat message with word wrapping and colors"""
+    if role == "user":
+        prefix = f"{Colors.USER_PROMPT}You:{Colors.RESET}       "
+        text_color = Colors.USER_FG
+    else:
+        prefix = f"{Colors.AGENT_PROMPT}{agent_name.capitalize()}:{Colors.RESET}     "
+        text_color = Colors.AGENT_FG
 
     # Simple word wrap
     words = content.split()
@@ -58,30 +94,11 @@ def format_message(role: str, content: str, max_width: int = 70) -> str:
     result = []
     for i, line in enumerate(lines):
         if i == 0:
-            result.append(f"{prefix}{line}")
+            result.append(f"{prefix}{text_color}{line}{Colors.RESET}")
         else:
-            result.append(f"{' ' * 13}{line}")
+            result.append(f"{' ' * 13}{text_color}{line}{Colors.RESET}")
 
     return '\n'.join(result)
-
-
-def print_response_stream(content: str):
-    """Print response with typing effect (simulated)"""
-    import time
-
-    prefix = "🤖 NANO:     "
-    print(prefix, end='', flush=True)
-
-    # Print word by word for effect
-    words = content.split()
-    for i, word in enumerate(words):
-        if i > 0:
-            print(' ', end='', flush=True)
-        print(word, end='', flush=True)
-        # Small delay for effect (optional - can be removed for speed)
-        # time.sleep(0.01)
-
-    print()  # Final newline
 
 
 class TUIChat:
@@ -96,21 +113,25 @@ class TUIChat:
         self.memory = memory
         self.conversation_id = "tui_session"
         self.running = False
+        self.agent_name = orchestrator.agent.get('name', 'gob')
+        self.agent_desc = orchestrator.agent.get('description', 'AI assistant')
 
     def _show_help(self):
         """Show help message"""
-        help_text = """
-📖 Available Commands:
+        help_text = f"""
+{Colors.HEADER}Available Commands:{Colors.RESET}
 
   /help    - Show this help message
   /clear   - Clear conversation history
+  /restart - Restart session and clear screen
   /tools   - List available tools
   /status  - Show system status
+  /prompt  - View system prompt
   /exit    - Exit the chat
 
-💡 Tips:
-  • Just type naturally to chat with NANO
-  • NANO can search the web, run code, edit files
+{Colors.INFO}Tips:{Colors.RESET}
+  • Just type naturally to chat with {self.agent_name}
+  • {self.agent_name} can search the web, run code, edit files
   • Running on Arch Linux - can install packages via pacman/pip
   • All tools execute in the Docker container
 """
@@ -118,42 +139,56 @@ class TUIChat:
 
     def _show_tools(self):
         """Show available tools"""
-        print("\n🔧 Available Tools:")
-        for tool in self.orchestrator.enabled_tools:
+        agent_info = self.orchestrator.get_agent_info()
+        print(f"\n{Colors.HEADER}Available Tools ({len(agent_info['enabled_tools'])}):{Colors.RESET}")
+        for tool in agent_info['enabled_tools']:
             print(f"  • {tool}")
         print()
 
     def _show_status(self):
         """Show system status"""
+        agent_info = self.orchestrator.get_agent_info()
+        
         status = f"""
-📊 System Status:
+{Colors.HEADER}System Status:{Colors.RESET}
 
-  Agent:    {self.orchestrator.agent.get('name', 'Unknown')}
-  Model:    {self.orchestrator.llm.model}
-  Provider: {self.orchestrator.llm.config.get('provider', 'unknown')}
-  Memory:   {len(self.memory.get_all())} entries
-  Tools:    {len(self.orchestrator.enabled_tools)} enabled
+  Agent Name:        {Colors.AGENT_FG}{agent_info['name']}{Colors.RESET}
+  Description:       {agent_info['description']}
+  Model:             {Colors.INFO}{self.orchestrator.llm.model}{Colors.RESET}
+  Provider:          {self.orchestrator.llm.config.get('provider', 'unknown')}
+  Max Iterations:    {agent_info['max_iterations']}
+  Retry on Error:    {agent_info['retry_on_error']}
   
-  Enabled Tools:
+  Memory:            {len(self.memory.get_all())} entries
+  Enabled Tools:     {len(agent_info['enabled_tools'])}
 """
         print(status)
-        for tool in self.orchestrator.enabled_tools:
+        
+        print("  Tools:")
+        for tool in agent_info['enabled_tools']:
             print(f"    • {tool}")
+        
+        print()
+
+    def _show_prompt(self):
+        """Show the current system prompt"""
+        print(f"\n{Colors.HEADER}System Prompt:{Colors.RESET}\n")
+        print(f"{Colors.BORDER}{'═' * 70}{Colors.RESET}")
+        print(self.orchestrator.get_system_prompt())
+        print(f"{Colors.BORDER}{'═' * 70}{Colors.RESET}")
         print()
 
     def _clear_history(self):
         """Clear conversation history"""
-        # Note: This doesn't actually delete the memory file,
-        # just starts a new conversation ID
         self.conversation_id = f"tui_session_{len(self.memory.get_all())}"
-        print("🗑️  Conversation history cleared!\n")
+        print(f"{Colors.SUCCESS}Conversation history cleared for {self.agent_name}!{Colors.RESET}\n")
 
     def _process_command(self, cmd: str) -> bool:
         """Process a slash command. Returns True if should continue."""
         cmd = cmd.lower().strip()
 
         if cmd == '/exit' or cmd == '/quit':
-            print("\n👋 Goodbye!")
+            print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
             self.running = False
             return False
 
@@ -163,14 +198,27 @@ class TUIChat:
         elif cmd == '/clear':
             self._clear_history()
 
+        elif cmd == '/restart':
+            clear_screen()
+            self._clear_history()
+            print_banner(
+                self.agent_name,
+                self.orchestrator.llm.model,
+                self.agent_desc
+            )
+            print(f"{Colors.SUCCESS}{self.agent_name.capitalize()} restarted!{Colors.RESET} How can I help you?\n")
+
         elif cmd == '/tools':
             self._show_tools()
 
         elif cmd == '/status':
             self._show_status()
 
+        elif cmd == '/prompt':
+            self._show_prompt()
+
         else:
-            print(f"❓ Unknown command: {cmd}")
+            print(f"{Colors.ERROR}Unknown command: {cmd}{Colors.RESET}")
             print("   Type /help for available commands\n")
 
         return True
@@ -181,19 +229,23 @@ class TUIChat:
 
         clear_screen()
         print_banner(
-            self.orchestrator.agent.get('name', 'NANO'),
-            self.orchestrator.llm.model
+            self.agent_name,
+            self.orchestrator.llm.model,
+            self.agent_desc
         )
 
-        print("🚀 NANO is ready! Type /help for commands or start chatting.\n")
+        print(f"{Colors.SUCCESS}{self.agent_name.capitalize()} is ready!{Colors.RESET} Type /help for commands or start chatting.\n")
 
         while self.running:
             try:
-                # Get user input
-                user_input = input("🧑 You:      ").strip()
+                # Get user input with colored prompt
+                user_input = input(f"{Colors.USER_PROMPT}You:{Colors.RESET}       ").strip()
 
                 if not user_input:
                     continue
+
+                # Add newline after user input for spacing
+                print()
 
                 # Check for commands
                 if user_input.startswith('/'):
@@ -202,27 +254,24 @@ class TUIChat:
                     continue
 
                 # Process message through orchestrator
-                print("🤖 NANO:     ", end='', flush=True)
-
                 try:
                     response = self.orchestrator.process_message(
                         user_input,
                         self.conversation_id
                     )
 
-                    # Clear the "NANO:" line and print full response
-                    print('\r' + ' ' * 50 + '\r', end='')
-                    print(format_message("assistant", response))
-                    print()
+                    # Format and print response
+                    print(format_message("assistant", response, self.agent_name))
+                    print() # Extra newline after response
 
                 except Exception as e:
-                    print(f"\r❌ Error: {str(e)}\n")
+                    print(f"{Colors.ERROR}Error: {str(e)}{Colors.RESET}\n")
 
             except KeyboardInterrupt:
-                print("\n\n👋 Interrupted. Use /exit to quit properly.")
+                print(f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}")
                 continue
             except EOFError:
-                print("\n👋 Goodbye!")
+                print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
                 break
 
 
