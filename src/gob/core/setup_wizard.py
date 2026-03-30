@@ -21,6 +21,11 @@ class GOBSetup:
         self.env_path = self.project_root / ".env"
         self.config_path = self.project_root / "config" / "config.yaml"
         self.section_break = "─" * 70
+        self.GREEN = "\033[0;32m"
+        self.YELLOW = "\033[1;33m"
+        self.RED = "\033[0;31m"
+        self.BLUE = "\033[0;34m"
+        self.NC = "\033[0m"
     def print_header(self):
         """Print colored header"""
         print("")
