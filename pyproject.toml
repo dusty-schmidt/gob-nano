@@ -12,16 +12,18 @@ authors = [{name = "dusty-schmidt"}]
 license = {text = "MIT"}
 keywords = ["discord", "ai", "agent", "edge-device"]
 
-dependencies = [
-    "discord.py>=2.3.0",
-    "requests>=2.31.0",
-    "pyyaml>=6.0",
-    "python-dotenv>=1.0.0",
-    "duckduckgo-search>=4.0",
-]
 
+# Console scripts entry point - enables 'gob' CLI command after pip install
+[project.scripts]
+gob = "src.gob.main:main_entry"
+# Console scripts entry point - enables 'gob' CLI command after pip install
+[project.scripts]
+gob = "src.gob.main:main_entry"
+
+# Dev dependencies
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "flake8>=6.0"]
 
+# Package configuration
 [tool.setuptools.packages.find]
 where = ["src"]
