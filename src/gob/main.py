@@ -36,7 +36,7 @@ def main():
     # Load configuration
     try:
         config = load_config()
-        print(f"✅ Config loaded")
+        logger.info("Config loaded")
     except Exception as e:
         print(f"❌ Failed to load config: {e}")
         sys.exit(1)

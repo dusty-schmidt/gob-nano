@@ -1,102 +1,71 @@
-"""OpenRouter LLM Client for NANO"""
+"""LLM Client for OpenRouter API"""
 
 import json
-import os
-from typing import Any, Dict, Generator, List, Optional
-
+import time
+import logging
 import requests
+from typing import Any, Dict, List, Optional
 
+logger = logging.getLogger(__name__)
 
 class LLMClient:
-    """Client for OpenRouter API"""
+    def __init__(self, endpoint: str, api_key: str, model: str, timeout: int = 30):
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.model = model
+        self.timeout = timeout
 
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-        self.endpoint = config.get("endpoint", "https://openrouter.ai/api/v1")
-        self.model = config.get("model", "qwen/qwen3.5-flash-02-23")
-        self.api_key = config.get("api_key") or os.getenv("OPENROUTER_API_KEY")
-        self.max_tokens = config.get("max_tokens", 4096)
-        self.temperature = config.get("temperature", 0.7)
-
-        if not self.api_key:
-            raise ValueError("OpenRouter API key not configured")
-
-    def chat(
-        self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None
-    ) -> Dict[str, Any]:
-        """Send chat completion request to OpenRouter"""
+    def chat(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
+        """Synchronous chat call to OpenRouter"""
+        url = f"{self.endpoint}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/dusty-schmidt/gob",
             "X-Title": "GOB-GOB Agent",
+            "Content-Type": "application/json",
         }
-
+        
         payload = {
             "model": self.model,
             "messages": messages,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
         }
-
+        
         if tools:
             payload["tools"] = tools
-            payload["tool_choice"] = "auto"
 
         try:
-            response = requests.post(
-                f"{self.endpoint}/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=120,
-            )
+            response = requests.post(url, json=payload, headers=headers, timeout=self.timeout)
             response.raise_for_status()
             return response.json()
-        except requests.exceptions.Timeout:
-            raise RuntimeError("LLM request timed out after 120 seconds")
         except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"LLM request failed: {e}")
+            logger.error(f"LLM request failed: {e}")
+            # Return a structured error response instead of crashing
+            return {
+                "error": str(e),
+                "choices": [{
+                    "message": {
+                        "role": "assistant",
+                        "content": f"I encountered a network error while communicating with the LLM: {e}"
+                    }
+                }]
+            }
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM response: {e}")
+            return {
+                "error": str(e),
+                "choices": [{
+                    "message": {
+                        "role": "assistant",
+                        "content": "I received an invalid response from the LLM service."
+                    }
+                }]
+            }
 
-    def chat_stream(self, messages: List[Dict[str, str]]) -> Generator[str, None, None]:
-        """Stream chat completion from OpenRouter"""
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/dusty-schmidt/gob",
-            "X-Title": "GOB-GOB Agent",
-        }
-
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "stream": True,
-        }
-
-        try:
-            response = requests.post(
-                f"{self.endpoint}/chat/completions",
-                headers=headers,
-                json=payload,
-                stream=True,
-                timeout=120,
-            )
-            response.raise_for_status()
-
-            for line in response.iter_lines():
-                if line:
-                    line = line.decode("utf-8")
-                    if line.startswith("data: "):
-                        data = line[6:]
-                        if data == "[DONE]":
-                            break
-                        try:
-                            chunk = json.loads(data)
-                            delta = chunk["choices"][0].get("delta", {})
-                            if "content" in delta:
-                                yield delta["content"]
-                        except (json.JSONDecodeError, KeyError):
-                            continue
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"LLM stream failed: {e}")
+    def chat_stream(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None):
+        """Streaming chat call (placeholder implementation)"""
+        # For now, falls back to standard chat, can be implemented with requests stream=True
+        response = self.chat(messages, tools)
+        if "error" in response:
+            yield response["error"]
+        else:
+            yield response["choices"][0]["message"].get("content", "")
