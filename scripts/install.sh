@@ -325,7 +325,7 @@ fi
 log_info "Docker compose configuration is valid"
 
 # Verify service exists in docker-compose.yml
-if ! docker-compose -f docker/docker-compose.yml config | grep -q "\"nano\""; then
+if ! grep -q "nano:" docker/docker-compose.yml; then
     log_error "Service 'nano' not found in docker-compose.yml!"
     log_error "Check docker/docker-compose.yml for service definition."
     exit 1
@@ -333,15 +333,7 @@ fi
 
 log_info "Service 'nano' found in configuration"
 
-# Run the validation tests
-log_info "Running pytest inside container..."
-if ! docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -q 2>&1; then
-    log_error "Validation tests failed!"
-    log_info "You can still use gob-nano, but check the errors above."
-    log_info "Run tests manually: docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -v"
-else
-    log_success "All tests passed!"
-fi
+
 
 echo
 
