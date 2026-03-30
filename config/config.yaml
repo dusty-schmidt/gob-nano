@@ -14,9 +14,9 @@ llm:
   max_tokens: 4096
   temperature: 0.7
   # Primary chat model - used for all reasoning and responses
-  chat_model: qwen/qwen3.5-flash
+  chat_model: qwen/qwen3.5-flash-02-23
   # Utility model - cheap model for internal tasks (memory queries, summarization)
-  utility_model: qwen/qwen3.5-flash
+  utility_model: qwen/qwen3.5-flash-02-23
   # Embedding model - local sentence-transformers model name (no API cost)
   embedding_model: all-MiniLM-L6-v2
 
