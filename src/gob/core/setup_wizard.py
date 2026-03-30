@@ -20,7 +20,7 @@ class GOBSetup:
         self.venv_path = self.project_root / "venv"
         self.env_path = self.project_root / ".env"
         self.config_path = self.project_root / "config" / "config.yaml"
-        
+        self.section_break = "─" * 70
     def print_header(self):
         """Print colored header"""
         print("")
