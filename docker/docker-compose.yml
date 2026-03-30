@@ -1,14 +1,33 @@
 version: '3.8'
 
 services:
-  mini-agent:
-    build: .
-    container_name: mini-agent-zero
+  nano:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: gob-nano
     stdin_open: true
     tty: true
+    
+    # Load environment variables from .env
+    env_file:
+      - .env
+    
+    # Bind mounts for config and data
     volumes:
+      - ./config:/a0/config
+      - ./src/nano/data:/a0/data
       - ./workdir:/a0/workdir
       - ./tmp:/a0/tmp
+    
+    # Environment variables
     environment:
       - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    
+    # Keep container running
     restart: unless-stopped
+    
+    # Don't auto-start (controlled by user)
+    profiles:
+      - ""
