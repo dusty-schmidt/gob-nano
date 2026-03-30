@@ -226,7 +226,7 @@ DISCORD_BOT_TOKEN=
         # Check dependencies
         try:
             result = subprocess.run([venv_python, "-c", 
-                "import discord, pyyaml, requests, httpx, faiss, sentence_transformers, numpy; print('OK')"], 
+                "import discord, yaml, requests, httpx, faiss, sentence_transformers, numpy; print('OK')"], 
                 capture_output=True, text=True, timeout=30)
             if result.returncode == 0:
                 self.print_colored("✓ All required packages installed", "\033[0;32m")
