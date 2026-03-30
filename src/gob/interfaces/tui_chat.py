@@ -1,42 +1,44 @@
 """TUI Chat Interface for NANO - Simple terminal chat"""
-import sys
-import os
-from typing import Dict, Any, Optional
 
-from src.gob.orchestrator import AgentOrchestrator
+import os
+import sys
+from typing import Any, Dict, Optional
+
 from src.gob.helpers.memory.memory import MemoryManager
+from src.gob.orchestrator import AgentOrchestrator
 
 
 # ANSI color codes
 class Colors:
     """ANSI color codes for terminal output"""
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
-    DIM = '\033[2m'
-    
+
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+
     # User colors - Perfectly matched Bold Cyan
-    USER_FG = '\033[36;1m'  
-    USER_PROMPT = '\033[36;1m'
-    
+    USER_FG = "\033[36;1m"
+    USER_PROMPT = "\033[36;1m"
+
     # Agent colors - Perfectly matched Bold Yellow
-    AGENT_FG = '\033[33;1m'  
-    AGENT_PROMPT = '\033[33;1m'
-    
+    AGENT_FG = "\033[33;1m"
+    AGENT_PROMPT = "\033[33;1m"
+
     # System colors
-    HEADER = '\033[35m'  # Magenta
-    INFO = '\033[34m'    # Blue
-    SUCCESS = '\033[32m' # Green
-    WARNING = '\033[33m' # Yellow
-    ERROR = '\033[31m'   # Red
-    
+    HEADER = "\033[35m"  # Magenta
+    INFO = "\033[34m"  # Blue
+    SUCCESS = "\033[32m"  # Green
+    WARNING = "\033[33m"  # Yellow
+    ERROR = "\033[31m"  # Red
+
     # Neutral
-    BORDER = '\033[37m'  # White/Gray
-    TEXT = '\033[0m'     # Default
+    BORDER = "\033[37m"  # White/Gray
+    TEXT = "\033[0m"  # Default
 
 
 def clear_screen():
     """Clear the terminal screen"""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 def print_banner(agent_name: str, model: str, description: str = ""):
@@ -66,7 +68,9 @@ def print_banner(agent_name: str, model: str, description: str = ""):
     print(banner)
 
 
-def format_message(role: str, content: str, agent_name: str = "gob", max_width: int = 70) -> str:
+def format_message(
+    role: str, content: str, agent_name: str = "gob", max_width: int = 70
+) -> str:
     """Format a chat message with word wrapping and colors"""
     if role == "user":
         prefix = f"{Colors.USER_PROMPT}You:{Colors.RESET}       "
@@ -98,23 +102,19 @@ def format_message(role: str, content: str, agent_name: str = "gob", max_width: 
         else:
             result.append(f"{' ' * 13}{text_color}{line}{Colors.RESET}")
 
-    return '\n'.join(result)
+    return "\n".join(result)
 
 
 class TUIChat:
     """Simple TUI chat interface"""
 
-    def __init__(
-        self,
-        orchestrator: AgentOrchestrator,
-        memory: MemoryManager
-    ):
+    def __init__(self, orchestrator: AgentOrchestrator, memory: MemoryManager):
         self.orchestrator = orchestrator
         self.memory = memory
         self.conversation_id = "tui_session"
         self.running = False
-        self.agent_name = orchestrator.agent.get('name', 'gob')
-        self.agent_desc = orchestrator.agent.get('description', 'AI assistant')
+        self.agent_name = orchestrator.agent.get("name", "gob")
+        self.agent_desc = orchestrator.agent.get("description", "AI assistant")
 
     def _show_help(self):
         """Show help message"""
@@ -140,15 +140,17 @@ class TUIChat:
     def _show_tools(self):
         """Show available tools"""
         agent_info = self.orchestrator.get_agent_info()
-        print(f"\n{Colors.HEADER}Available Tools ({len(agent_info['enabled_tools'])}):{Colors.RESET}")
-        for tool in agent_info['enabled_tools']:
+        print(
+            f"\n{Colors.HEADER}Available Tools ({len(agent_info['enabled_tools'])}):{Colors.RESET}"
+        )
+        for tool in agent_info["enabled_tools"]:
             print(f"  • {tool}")
         print()
 
     def _show_status(self):
         """Show system status"""
         agent_info = self.orchestrator.get_agent_info()
-        
+
         status = f"""
 {Colors.HEADER}System Status:{Colors.RESET}
 
@@ -163,11 +165,11 @@ class TUIChat:
   Enabled Tools:     {len(agent_info['enabled_tools'])}
 """
         print(status)
-        
+
         print("  Tools:")
-        for tool in agent_info['enabled_tools']:
+        for tool in agent_info["enabled_tools"]:
             print(f"    • {tool}")
-        
+
         print()
 
     def _show_prompt(self):
@@ -181,40 +183,40 @@ class TUIChat:
     def _clear_history(self):
         """Clear conversation history"""
         self.conversation_id = f"tui_session_{len(self.memory.get_all())}"
-        print(f"{Colors.SUCCESS}Conversation history cleared for {self.agent_name}!{Colors.RESET}\n")
+        print(
+            f"{Colors.SUCCESS}Conversation history cleared for {self.agent_name}!{Colors.RESET}\n"
+        )
 
     def _process_command(self, cmd: str) -> bool:
         """Process a slash command. Returns True if should continue."""
         cmd = cmd.lower().strip()
 
-        if cmd == '/exit' or cmd == '/quit':
+        if cmd == "/exit" or cmd == "/quit":
             print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
             self.running = False
             return False
 
-        elif cmd == '/help':
+        elif cmd == "/help":
             self._show_help()
 
-        elif cmd == '/clear':
+        elif cmd == "/clear":
             self._clear_history()
 
-        elif cmd == '/restart':
+        elif cmd == "/restart":
             clear_screen()
             self._clear_history()
-            print_banner(
-                self.agent_name,
-                self.orchestrator.llm.model,
-                self.agent_desc
+            print_banner(self.agent_name, self.orchestrator.llm.model, self.agent_desc)
+            print(
+                f"{Colors.SUCCESS}{self.agent_name.capitalize()} restarted!{Colors.RESET} How can I help you?\n"
             )
-            print(f"{Colors.SUCCESS}{self.agent_name.capitalize()} restarted!{Colors.RESET} How can I help you?\n")
 
-        elif cmd == '/tools':
+        elif cmd == "/tools":
             self._show_tools()
 
-        elif cmd == '/status':
+        elif cmd == "/status":
             self._show_status()
 
-        elif cmd == '/prompt':
+        elif cmd == "/prompt":
             self._show_prompt()
 
         else:
@@ -228,18 +230,18 @@ class TUIChat:
         self.running = True
 
         clear_screen()
-        print_banner(
-            self.agent_name,
-            self.orchestrator.llm.model,
-            self.agent_desc
-        )
+        print_banner(self.agent_name, self.orchestrator.llm.model, self.agent_desc)
 
-        print(f"{Colors.SUCCESS}{self.agent_name.capitalize()} is ready!{Colors.RESET} Type /help for commands or start chatting.\n")
+        print(
+            f"{Colors.SUCCESS}{self.agent_name.capitalize()} is ready!{Colors.RESET} Type /help for commands or start chatting.\n"
+        )
 
         while self.running:
             try:
                 # Get user input with colored prompt
-                user_input = input(f"{Colors.USER_PROMPT}You:{Colors.RESET}       ").strip()
+                user_input = input(
+                    f"{Colors.USER_PROMPT}You:{Colors.RESET}       "
+                ).strip()
 
                 if not user_input:
                     continue
@@ -248,7 +250,7 @@ class TUIChat:
                 print()
 
                 # Check for commands
-                if user_input.startswith('/'):
+                if user_input.startswith("/"):
                     if not self._process_command(user_input):
                         break
                     continue
@@ -256,29 +258,29 @@ class TUIChat:
                 # Process message through orchestrator
                 try:
                     response = self.orchestrator.process_message(
-                        user_input,
-                        self.conversation_id
+                        user_input, self.conversation_id
                     )
 
                     # Format and print response
                     print(format_message("assistant", response, self.agent_name))
-                    print() # Extra newline after response
+                    print()  # Extra newline after response
 
                 except Exception as e:
                     print(f"{Colors.ERROR}Error: {str(e)}{Colors.RESET}\n")
 
             except KeyboardInterrupt:
-                print(f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}")
+                print(
+                    f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}"
+                )
                 continue
             except EOFError:
-                print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
+                print(
+                    f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}"
+                )
                 break
 
 
-def run_tui_chat(
-    orchestrator: AgentOrchestrator,
-    memory: MemoryManager
-):
+def run_tui_chat(orchestrator: AgentOrchestrator, memory: MemoryManager):
     """Run the TUI chat interface"""
     chat = TUIChat(orchestrator, memory)
     chat.run()

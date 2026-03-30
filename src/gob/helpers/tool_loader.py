@@ -1,5 +1,7 @@
 """Tool loader for NANO"""
+
 from importlib import import_module
+
 
 def load_tool(tool_name: str):
     """Import and return a tool module from gob.tools by name"""

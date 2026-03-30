@@ -1,4 +1,5 @@
 """Search engine tool - Web search via DuckDuckGo"""
+
 import subprocess
 import sys
 
@@ -26,9 +27,9 @@ def search(query: str, max_results: int = 5) -> str:
 
         formatted_results = []
         for i, result in enumerate(results, 1):
-            title = result.get('title', 'No title')
-            href = result.get('href', 'No URL')
-            body = result.get('body', 'No description')
+            title = result.get("title", "No title")
+            href = result.get("href", "No URL")
+            body = result.get("body", "No description")
             formatted_results.append(f"{i}. {title}\n   URL: {href}\n   {body}\n")
 
         return "Search results:\n\n" + "\n".join(formatted_results)
@@ -58,7 +59,7 @@ def install_ddg() -> str:
             [sys.executable, "-m", "pip", "install", "duckduckgo-search", "-q"],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
         if result.returncode == 0:
             return "duckduckgo-search installed successfully! Search is now available."

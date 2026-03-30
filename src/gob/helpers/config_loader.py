@@ -1,19 +1,23 @@
 """Configuration loader for NANO"""
+
 import os
 import re
-import yaml
 from pathlib import Path
+
+import yaml
+
 
 def resolve_env_vars(value):
     """Resolve ${VAR_NAME} environment variable placeholders in a string."""
     if not isinstance(value, str):
         return value
-    pattern = r'\$\{([^}]+)\}'
+    pattern = r"\$\{([^}]+)\}"
     matches = re.findall(pattern, value)
     for var_name in matches:
-        env_value = os.environ.get(var_name, '')
-        value = value.replace(f'${{{var_name}}}', env_value)
+        env_value = os.environ.get(var_name, "")
+        value = value.replace(f"${{{var_name}}}", env_value)
     return value
+
 
 def resolve_config_env_vars(config):
     """Recursively resolve environment variables in config dict values."""
@@ -23,6 +27,7 @@ def resolve_config_env_vars(config):
         return [resolve_config_env_vars(item) for item in config]
     else:
         return resolve_env_vars(config)
+
 
 def load_config():
     """Load the main config.yaml file from the config directory"""

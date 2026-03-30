@@ -1,6 +1,8 @@
 """Simple JSON-lines memory manager for NANO"""
+
 import json
 from pathlib import Path
+
 
 class MemoryManager:
     def __init__(self, file_path: Path):

@@ -1,10 +1,11 @@
 """Code execution tool - Execute Python code and bash commands"""
-import subprocess
-import tempfile
+
 import os
+import subprocess
 import sys
+import tempfile
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
-from contextlib import redirect_stdout, redirect_stderr
 
 
 def execute(code: str, language: str = "python") -> str:
@@ -84,7 +85,7 @@ def _execute_bash(command: str) -> str:
             capture_output=True,
             text=True,
             timeout=30,  # 30 second timeout
-            cwd="/app"   # Run from /app directory
+            cwd="/app",  # Run from /app directory
         )
 
         output = []
@@ -95,7 +96,11 @@ def _execute_bash(command: str) -> str:
         if result.returncode != 0:
             output.append(f"Exit code: {result.returncode}")
 
-        return "\n\n".join(output) if output else "Command executed successfully (no output)"
+        return (
+            "\n\n".join(output)
+            if output
+            else "Command executed successfully (no output)"
+        )
 
     except subprocess.TimeoutExpired:
         return "Error: Command timed out after 30 seconds"
@@ -105,5 +110,5 @@ def _execute_bash(command: str) -> str:
 
 def run(command: str, **kwargs) -> str:
     """Alias for execute to match tool interface"""
-    language = kwargs.get('language', 'python')
+    language = kwargs.get("language", "python")
     return execute(command, language)
