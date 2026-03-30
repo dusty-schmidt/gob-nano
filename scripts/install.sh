@@ -119,14 +119,56 @@ log_section "Setting Up Repository"
 
 if [ -d "${INSTALL_DIR}/.git" ]; then
     log_info "Repository exists at ${INSTALL_DIR}"
-    read -p "📌 Update to latest version? (y/n) " -n 1 -r
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        log_info "Updating repository..."
-        cd "${INSTALL_DIR}"
-        git pull origin main
-        log_success "Repository updated"
-    fi
+    echo "📌 Found existing installation. Choose an option:"
+    echo "   1) Delete old version and install fresh"
+    echo "   2) Install alongside (different directory name)"
+    echo "   3) Overwrite existing installation"
+    echo "   4) Cancel installation"
+    echo
+    read -p "Enter choice (1-4): " CHOICE
+    
+    case $CHOICE in
+        1)
+            log_info "Backing up old installation..."
+            BACKUP_DIR="${INSTALL_DIR}-backup-$(date +%Y%m%d-%H%M%S)"
+            mv "${INSTALL_DIR}" "${BACKUP_DIR}"
+            log_success "Old installation backed up to: ${BACKUP_DIR}"
+            log_info "Cloning fresh gob-nano to ${INSTALL_DIR}..."
+            if ! git clone "${REPO_URL}" "${INSTALL_DIR}" 2>/dev/null; then
+                log_info "SSH clone failed, trying HTTPS..."
+                git clone "${REPO_HTTPS}" "${INSTALL_DIR}"
+            fi
+            log_success "Repository cloned"
+            ;;
+        2)
+            log_info "Installing alongside existing installation..."
+            SUFFIX="-$(date +%Y%m%d-%H%M%S)"
+            NEW_INSTALL_DIR="${INSTALL_DIR}${SUFFIX}"
+            INSTALL_DIR="${NEW_INSTALL_DIR}"
+            log_info "New installation directory: ${INSTALL_DIR}"
+            log_info "Cloning gob-nano to ${INSTALL_DIR}..."
+            if ! git clone "${REPO_URL}" "${INSTALL_DIR}" 2>/dev/null; then
+                log_info "SSH clone failed, trying HTTPS..."
+                git clone "${REPO_HTTPS}" "${INSTALL_DIR}"
+            fi
+            log_success "Repository cloned"
+            ;;
+        3)
+            log_info "Overwriting existing installation..."
+            cd "${INSTALL_DIR}"
+            git pull origin main
+            log_success "Repository updated"
+            ;;
+        4)
+            log_error "Installation cancelled"
+            exit 0
+            ;;
+        *)
+            log_error "Invalid choice. Cancelling installation."
+            exit 1
+            ;;
+    esac
 else
     log_info "Cloning gob-nano to ${INSTALL_DIR}..."
     
