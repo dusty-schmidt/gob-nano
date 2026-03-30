@@ -26,7 +26,7 @@ def resolve_config_env_vars(config):
 
 def load_config():
     """Load the main config.yaml file from the config directory"""
-    # Navigate from src/nano/helpers/ up to project root
+    # Navigate from src/gob/helpers/ up to project root
     config_path = Path(__file__).parent.parent.parent.parent / "config" / "config.yaml"
     if not config_path.is_file():
         raise FileNotFoundError(f"Config file not found: {config_path}")

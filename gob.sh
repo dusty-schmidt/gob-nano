@@ -1,6 +1,6 @@
 #!/bin/bash
 # GOB-NANO Launcher Script
-# Usage: ./nano.sh [tui|discord|validate|bash]
+# Usage: ./gob.sh [tui|discord|validate|bash]
 
 set -e
 
@@ -14,28 +14,28 @@ case "$MODE" in
         echo "🚀 Starting GOB-NANO in TUI mode..."
         echo "   (Press Ctrl+C to exit)"
         echo ""
-        docker-compose -f docker/docker-compose.yml run --rm nano
+        docker-compose -f docker/docker-compose.yml run --rm gob
         ;;
     
     discord)
         echo "🤖 Starting GOB-NANO Discord bot..."
         echo "   (Press Ctrl+C to stop)"
         echo ""
-        docker-compose -f docker/docker-compose.yml run --rm -e NANO_MODE=discord nano
+        docker-compose -f docker/docker-compose.yml run --rm -e NANO_MODE=discord gob
         ;;
     
     validate)
         echo "✅ Validating GOB-NANO configuration..."
-        docker-compose -f docker/docker-compose.yml run --rm nano python -m src.nano.main --mode validate
+        docker-compose -f docker/docker-compose.yml run --rm gob python -m src.gob.main --mode validate
         ;;
     
     bash)
         echo "🐚 Opening bash shell in GOB-NANO container..."
-        docker-compose -f docker/docker-compose.yml run --rm nano bash
+        docker-compose -f docker/docker-compose.yml run --rm gob bash
         ;;
     
     *)
-        echo "Usage: ./nano.sh [tui|discord|validate|bash]"
+        echo "Usage: ./gob.sh [tui|discord|validate|bash]"
         echo ""
         echo "Commands:"
         echo "  tui       - Start interactive TUI chat (default)"
@@ -44,9 +44,9 @@ case "$MODE" in
         echo "  bash      - Open container shell"
         echo ""
         echo "Examples:"
-        echo "  ./nano.sh              # Start TUI mode"
-        echo "  ./nano.sh tui          # Start TUI mode explicitly"
-        echo "  ./nano.sh discord      # Start Discord bot"
+        echo "  ./gob.sh              # Start TUI mode"
+        echo "  ./gob.sh tui          # Start TUI mode explicitly"
+        echo "  ./gob.sh discord      # Start Discord bot"
         exit 1
         ;;
 esac

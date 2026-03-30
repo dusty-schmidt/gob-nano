@@ -9,12 +9,12 @@ class TestMainEntry:
 
     def test_main_imports(self):
         """Test that main.py can be imported without errors."""
-        from src.nano import main
+        from src.gob import main
         assert hasattr(main, 'main')
 
-    @patch('src.nano.main.load_config')
-    @patch('src.nano.main.load_agent')
-    @patch('src.nano.main.MemoryManager')
+    @patch('src.gob.main.load_config')
+    @patch('src.gob.main.load_agent')
+    @patch('src.gob.main.MemoryManager')
     def test_main_loads_config_agent_memory(self, mock_memory, mock_agent, mock_config):
         """Test that main() loads config, agent, and memory."""
         mock_config.return_value = {
@@ -24,7 +24,7 @@ class TestMainEntry:
         }
         mock_agent.return_value = {'name': 'Test Agent'}
         
-        from src.nano.main import main
+        from src.gob.main import main
         
         # Capture output to avoid print statements during test
         with patch('builtins.print'):
@@ -34,7 +34,7 @@ class TestMainEntry:
         mock_agent.assert_called_once_with('default')
         mock_memory.assert_called_once()
 
-    @patch('src.nano.main.load_config')
+    @patch('src.gob.main.load_config')
     def test_main_exits_on_missing_api_key(self, mock_config):
         """Test that main() exits if API key is not configured."""
         mock_config.return_value = {
@@ -43,7 +43,7 @@ class TestMainEntry:
             'tools': {'enabled': []}
         }
         
-        from src.nano.main import main
+        from src.gob.main import main
         
         with patch('builtins.print'):
             with pytest.raises(SystemExit):
@@ -51,7 +51,7 @@ class TestMainEntry:
 
     def test_main_can_run(self):
         """Integration test: main() can run with real config."""
-        from src.nano.main import main
+        from src.gob.main import main
         
         # This should complete without error
         with patch('builtins.print'):

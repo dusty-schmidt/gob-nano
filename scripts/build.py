@@ -7,7 +7,7 @@ def build_docker():
     print_info("Building NANO Docker image...\n")
     project_root = get_project_root()
     docker_dir = project_root / "docker"
-    cmd = ["docker", "build", "-t", "nano-agent:latest", "-f", str(docker_dir / "Dockerfile"), str(project_root)]
+    cmd = ["docker", "build", "-t", "gob-agent:latest", "-f", str(docker_dir / "Dockerfile"), str(project_root)]
     try:
         subprocess.run(cmd, check=True, cwd=str(project_root))
         print_success("Docker image built!")

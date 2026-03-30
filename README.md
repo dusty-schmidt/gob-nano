@@ -1,4 +1,4 @@
-# GOB-NANO
+# GOB
 
 **Ultra-minimal AI agent framework for edge devices (4-8GB RAM)**
 
@@ -9,11 +9,11 @@ Agent Zero's stripped-down cousin. All capability, minimal bloat. Runs on old la
 ### One-Command Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob/main/scripts/install.sh | bash
 ```
 
 This will:
-- Clone to `~/.nano`
+- Clone to `~/.gob`
 - Create a Python venv
 - Install the package
 - Create a `.env` template
@@ -22,13 +22,13 @@ This will:
 
 ```bash
 # Activate venv
-source ~/.nano/venv/bin/activate
+source ~/.gob/venv/bin/activate
 
 # Edit .env with your API keys
-nano ~/.nano/.env
+nano ~/.gob/.env
 
 # Run the agent
-python -m nano.main
+python -m gob.main
 ```
 
 ## Architecture
@@ -60,14 +60,14 @@ python -m nano.main
 
 ## Features
 
-✅ **Minimal Dependencies** (~12 core packages)  
-✅ **Fast Startup** (~15 seconds)  
-✅ **Low RAM Usage** (~100MB idle)  
-✅ **YAML Agent Configs** (runtime discoverable)  
-✅ **JSONL Memory** (no FAISS overhead)  
-✅ **Runtime Expandable** (install packages on-demand)  
-✅ **Full Terminal Access** (curl, pip, apt-get available)  
-✅ **Comprehensive Tests** (22 tests, 100% passing)  
+✅ **Minimal Dependencies** (~12 core packages)
+✅ **Fast Startup** (~15 seconds)
+✅ **Low RAM Usage** (~100MB idle)
+✅ **YAML Agent Configs** (runtime discoverable)
+✅ **JSONL Memory** (no FAISS overhead)
+✅ **Runtime Expandable** (install packages on-demand)
+✅ **Full Terminal Access** (curl, pip, apt-get available)
+✅ **Comprehensive Tests** (22 tests, 100% passing)
 
 ## Configuration
 
@@ -75,7 +75,7 @@ python -m nano.main
 
 ```yaml
 agent:
-  name: nano_agent
+  name: gob
   profile: default          # Which agent to load
 
 llm:
@@ -120,8 +120,8 @@ The agent auto-discovers YAML files at startup.
 ## Project Structure
 
 ```
-gob-nano/
-├── src/nano/
+gob/
+├── src/gob/
 │   ├── main.py              # Entry point
 │   ├── tools/               # 5 core tools
 │   ├── helpers/             # Config, agent, memory loaders
@@ -141,8 +141,8 @@ gob-nano/
 ### Install for Development
 
 ```bash
-git clone git@github.com:dusty-schmidt/gob-nano.git
-cd gob-nano
+git clone git@github.com:dusty-schmidt/gob.git
+cd gob
 python -m venv venv
 source venv/bin/activate
 pip install -e .
@@ -178,7 +178,7 @@ make run        # Start Docker container
 ### Validation Mode (current)
 
 ```bash
-python -m nano.main
+python -m gob.main
 ```
 
 Validates:
@@ -280,8 +280,8 @@ All tests mock external dependencies — no LLM calls, no external APIs.
 
 ```bash
 # Ensure you're in the project root
-cd ~/.nano
-python -m nano.main
+cd ~/.gob
+python -m gob.main
 ```
 
 ### "API key not configured"
@@ -314,7 +314,7 @@ MIT (same as Agent Zero)
 
 ## Resources
 
-- **GitHub:** https://github.com/dusty-schmidt/gob-nano
+- **GitHub:** https://github.com/dusty-schmidt/gob
 - **Agent Zero:** https://github.com/A2-ai/agent-zero
 - **OpenRouter:** https://openrouter.ai
 
@@ -322,22 +322,22 @@ MIT (same as Agent Zero)
 
 ```bash
 # Install
-curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob/main/scripts/install.sh | bash
 
 # Setup
-cd ~/.nano
+cd ~/.gob
 source venv/bin/activate
 nano .env          # Add API key
 
 # Run
-python -m nano.main
+python -m gob.main
 
 # Test
 pytest tests/ -v
 
 # Develop
-git clone git@github.com:dusty-schmidt/gob-nano.git
-cd gob-nano
+git clone git@github.com:dusty-schmidt/gob.git
+cd gob
 pip install -e .
 pytest tests/ -v
 ```
@@ -345,4 +345,3 @@ pytest tests/ -v
 ---
 
 **Status:** Production-ready • **Tests:** 22/22 passing • **Last updated:** 2026-03-29
-### Test commit by Gob agent - 2026-03-29

@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 from typing import Dict, Any, Optional
 
-from src.nano.orchestrator import AgentOrchestrator
-from src.nano.helpers.memory.memory import MemoryManager
+from src.gob.orchestrator import AgentOrchestrator
+from src.gob.helpers.memory.memory import MemoryManager
 
 
 class NanoDiscordBot(commands.Bot):
@@ -107,14 +107,14 @@ class NanoDiscordBot(commands.Bot):
     async def help_command(self, ctx: commands.Context):
         """Show help information"""
         embed = discord.Embed(
-            title="🤖 GOB-NANO Agent",
+            title="🤖 GOB-GOB Agent",
             description="Your minimal AI assistant for edge devices",
             color=discord.Color.blue()
         )
 
         embed.add_field(
             name="How to use",
-            value="Mention me (@nano) or DM me to start a conversation",
+            value="Mention me (@gob) or DM me to start a conversation",
             inline=False
         )
 

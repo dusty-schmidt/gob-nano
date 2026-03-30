@@ -1,4 +1,4 @@
-"""NANO Agent - Main entry point"""
+"""GOB Agent - Main entry point"""
 import os
 import sys
 import argparse
@@ -8,17 +8,17 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
-from src.nano.helpers.config_loader import load_config
-from src.nano.helpers.agent_loader import load_agent
-from src.nano.helpers.memory.memory import MemoryManager
-from src.nano.helpers.llm_client import LLMClient
-from src.nano.orchestrator import AgentOrchestrator
+from src.gob.helpers.config_loader import load_config
+from src.gob.helpers.agent_loader import load_agent
+from src.gob.helpers.memory.memory import MemoryManager
+from src.gob.helpers.llm_client import LLMClient
+from src.gob.orchestrator import AgentOrchestrator
 
 
 def main():
     """Initialize and run the NANO agent"""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='GOB-NANO Agent')
+    parser = argparse.ArgumentParser(description='GOB-GOB Agent')
     parser.add_argument(
         '--mode',
         choices=['tui', 'discord', 'validate'],
@@ -27,7 +27,7 @@ def main():
     )
     args = parser.parse_args()
 
-    print("🚀 Starting NANO Agent...")
+    print("🚀 Starting GOB Agent...")
 
     # Load configuration
     try:
@@ -68,7 +68,7 @@ def main():
 
     # List available tools
     try:
-        from src.nano.helpers.tool_loader import load_tool
+        from src.gob.helpers.tool_loader import load_tool
         enabled_tools = config.get('tools', {}).get('enabled', [])
         print(f"✅ Enabled tools: {', '.join(enabled_tools)}")
         for tool_name in enabled_tools:
@@ -111,13 +111,13 @@ def main():
     elif args.mode == 'tui':
         print("Starting TUI chat interface...")
         print("")
-        from src.nano.interfaces.tui_chat import run_tui_chat
+        from src.gob.interfaces.tui_chat import run_tui_chat
         run_tui_chat(orchestrator, memory)
 
     elif args.mode == 'discord':
         print("Starting Discord bot...")
         print("")
-        from src.nano.interfaces.discord_bot import run_discord_bot
+        from src.gob.interfaces.discord_bot import run_discord_bot
         discord_config = config.get('discord', {})
         run_discord_bot(orchestrator, memory, discord_config)
 

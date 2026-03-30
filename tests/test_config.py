@@ -10,7 +10,7 @@ class TestConfigLoading:
 
     def test_resolve_env_vars_basic(self):
         """Test that ${VAR_NAME} syntax is properly resolved from env."""
-        from src.nano.helpers.config_loader import resolve_env_vars
+        from src.gob.helpers.config_loader import resolve_env_vars
         
         os.environ['TEST_VAR'] = 'resolved_value'
         result = resolve_env_vars('prefix_${TEST_VAR}_suffix')
@@ -23,7 +23,7 @@ class TestConfigLoading:
 
     def test_resolve_env_vars_non_string(self):
         """Test that non-string values are returned unchanged."""
-        from src.nano.helpers.config_loader import resolve_env_vars
+        from src.gob.helpers.config_loader import resolve_env_vars
         
         assert resolve_env_vars(123) == 123
         assert resolve_env_vars(None) is None
@@ -31,7 +31,7 @@ class TestConfigLoading:
 
     def test_resolve_config_env_vars_recursive(self):
         """Test recursive resolution in nested dicts."""
-        from src.nano.helpers.config_loader import resolve_config_env_vars
+        from src.gob.helpers.config_loader import resolve_config_env_vars
         
         os.environ['API_KEY'] = 'secret123'
         config = {
@@ -52,7 +52,7 @@ class TestConfigLoading:
 
     def test_load_config_returns_dict(self):
         """Test that load_config returns a valid dict."""
-        from src.nano.helpers.config_loader import load_config
+        from src.gob.helpers.config_loader import load_config
         
         config = load_config()
         assert isinstance(config, dict)
@@ -62,11 +62,11 @@ class TestConfigLoading:
 
     def test_config_loaded_from_project_root(self):
         """Test that config is loaded from correct path."""
-        from src.nano.helpers.config_loader import load_config
+        from src.gob.helpers.config_loader import load_config
         
         config = load_config()
         # Verify we loaded our project's config
-        assert config['agent']['name'] == 'nano_agent'
+        assert config['agent']['name'] == 'gob'
 
 
 class TestMemoryOperations:
@@ -74,7 +74,7 @@ class TestMemoryOperations:
 
     def test_memory_file_creation(self, tmp_path):
         """Test that MemoryManager creates parent directory on init."""
-        from src.nano.helpers.memory.memory import MemoryManager
+        from src.gob.helpers.memory.memory import MemoryManager
         
         memory_file = tmp_path / 'subdir' / 'memory.jsonl'
         assert not memory_file.exists()
@@ -86,7 +86,7 @@ class TestMemoryOperations:
 
     def test_memory_add_entry(self, tmp_path):
         """Test adding a memory entry."""
-        from src.nano.helpers.memory.memory import MemoryManager
+        from src.gob.helpers.memory.memory import MemoryManager
         
         memory_file = tmp_path / 'memory.jsonl'
         manager = MemoryManager(memory_file)
@@ -100,7 +100,7 @@ class TestMemoryOperations:
 
     def test_memory_query_by_key(self, tmp_path):
         """Test querying memory entries by key."""
-        from src.nano.helpers.memory.memory import MemoryManager
+        from src.gob.helpers.memory.memory import MemoryManager
         
         memory_file = tmp_path / 'memory.jsonl'
         manager = MemoryManager(memory_file)
@@ -117,7 +117,7 @@ class TestMemoryOperations:
 
     def test_memory_empty_file(self, tmp_path):
         """Test that empty memory file returns empty list."""
-        from src.nano.helpers.memory.memory import MemoryManager
+        from src.gob.helpers.memory.memory import MemoryManager
         
         memory_file = tmp_path / 'empty.jsonl'
         memory_file.touch()
@@ -132,7 +132,7 @@ class TestToolLoader:
 
     def test_load_tool_returns_module(self):
         """Test that load_tool returns a module."""
-        from src.nano.helpers.tool_loader import load_tool
+        from src.gob.helpers.tool_loader import load_tool
         
         # This should work for actual tools
         tool = load_tool('response')
@@ -141,7 +141,7 @@ class TestToolLoader:
 
     def test_load_tool_nonexistent_raises(self):
         """Test that loading a non-existent tool raises ImportError."""
-        from src.nano.helpers.tool_loader import load_tool
+        from src.gob.helpers.tool_loader import load_tool
         
         with pytest.raises(ImportError):
             load_tool('nonexistent_tool_xyz')
@@ -152,7 +152,7 @@ class TestAgentLoader:
 
     def test_load_default_agent(self):
         """Test loading the default agent profile."""
-        from src.nano.helpers.agent_loader import load_agent
+        from src.gob.helpers.agent_loader import load_agent
         
         agent = load_agent('default')
         assert isinstance(agent, dict)
@@ -162,7 +162,7 @@ class TestAgentLoader:
 
     def test_load_nonexistent_agent_raises(self):
         """Test that loading non-existent profile raises FileNotFoundError."""
-        from src.nano.helpers.agent_loader import load_agent
+        from src.gob.helpers.agent_loader import load_agent
         
         with pytest.raises(FileNotFoundError):
             load_agent('nonexistent_profile')
@@ -173,27 +173,27 @@ class TestToolsExist:
 
     def test_response_tool_exists(self):
         """Test that response tool module exists."""
-        from src.nano.tools import response
+        from src.gob.tools import response
         assert hasattr(response, 'execute') or hasattr(response, 'run')
 
     def test_search_engine_tool_exists(self):
         """Test that search_engine tool module exists."""
-        from src.nano.tools import search_engine
+        from src.gob.tools import search_engine
         assert hasattr(search_engine, 'execute') or hasattr(search_engine, 'run')
 
     def test_code_execution_tool_exists(self):
         """Test that code_execution tool module exists."""
-        from src.nano.tools import code_execution
+        from src.gob.tools import code_execution
         assert hasattr(code_execution, 'execute') or hasattr(code_execution, 'run')
 
     def test_text_editor_tool_exists(self):
         """Test that text_editor tool module exists."""
-        from src.nano.tools import text_editor
+        from src.gob.tools import text_editor
         # Module has read/write/patch functions
         assert hasattr(text_editor, 'read')
         assert hasattr(text_editor, 'write')
         assert hasattr(text_editor, 'patch')
     def test_document_query_tool_exists(self):
         """Test that document_query tool module exists."""
-        from src.nano.tools import document_query
+        from src.gob.tools import document_query
         assert hasattr(document_query, 'execute') or hasattr(document_query, 'run')

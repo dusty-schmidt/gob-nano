@@ -92,7 +92,7 @@ def run_setup():
     print_success(f"Memory file created at {memory_file}")
     
     print_success("Setup complete!")
-    print_info("Run: python -m nano.main")
+    print_info("Run: python -m gob.main")
 
 if __name__ == "__main__":
     run_setup()

@@ -55,4 +55,4 @@ RUN chmod +x /app/entrypoint.sh
 
 # Default entrypoint and command
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "-m", "src.nano.main"]
+CMD ["python", "-m", "src.gob.main"]

@@ -18,7 +18,7 @@ def get_config_dir():
 
 def get_data_dir():
     """Get data directory"""
-    return get_project_root() / "src" / "nano" / "data"
+    return get_project_root() / "src" / "gob" / "data"
 
 def load_yaml(path):
     """Load YAML file"""

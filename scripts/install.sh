@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # ───────────────────────────────────────────────────────────────────────────
-# GOB-NANO One-Command Installer
+# GOB-GOB One-Command Installer
 # ───────────────────────────────────────────────────────────────────────────
-# Usage: curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-gob/main/scripts/install.sh | bash
 #
 # Features:
 # - Clones repo
@@ -18,7 +18,7 @@ set -euo pipefail
 set +e
 echo
 echo "╔════════════════════════════════════════════════════════════════════╗"
-echo "║              GOB-NANO Agent - One-Command Setup                    ║"
+echo "║              GOB-GOB Agent - One-Command Setup                    ║"
 echo "║          Ultra-minimal AI agent for edge devices                    ║"
 echo "╚════════════════════════════════════════════════════════════════════╝"
 echo
@@ -27,11 +27,11 @@ set -e
 # ───────────────────────────────────────────────────────────────────────────
 # Configuration
 # ───────────────────────────────────────────────────────────────────────────
-REPO_URL="git@github.com:dusty-schmidt/gob-nano.git"
-REPO_HTTPS="https://github.com/dusty-schmidt/gob-nano.git"
-INSTALL_DIR="${HOME}/.nano"
-IMAGE_NAME="gob-nano"
-CONTAINER_NAME="gob-nano"
+REPO_URL="git@github.com:dusty-schmidt/gob-gob.git"
+REPO_HTTPS="https://github.com/dusty-schmidt/gob-gob.git"
+INSTALL_DIR="${HOME}/.gob"
+IMAGE_NAME="gob-gob"
+CONTAINER_NAME="gob-gob"
 
 # ───────────────────────────────────────────────────────────────────────────
 # Helper Functions
@@ -147,7 +147,7 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
             BACKUP_DIR="${INSTALL_DIR}-backup-$(date +%Y%m%d-%H%M%S)"
             mv "${INSTALL_DIR}" "${BACKUP_DIR}"
             log_success "Old installation backed up to: ${BACKUP_DIR}"
-            log_info "Cloning fresh gob-nano to ${INSTALL_DIR}..."
+            log_info "Cloning fresh gob-gob to ${INSTALL_DIR}..."
             if ! git clone "${REPO_URL}" "${INSTALL_DIR}" 2>/dev/null; then
                 log_info "SSH clone failed, trying HTTPS..."
                 git clone "${REPO_HTTPS}" "${INSTALL_DIR}"
@@ -160,7 +160,7 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
             NEW_INSTALL_DIR="${INSTALL_DIR}${SUFFIX}"
             INSTALL_DIR="${NEW_INSTALL_DIR}"
             log_info "New installation directory: ${INSTALL_DIR}"
-            log_info "Cloning gob-nano to ${INSTALL_DIR}..."
+            log_info "Cloning gob-gob to ${INSTALL_DIR}..."
             if ! git clone "${REPO_URL}" "${INSTALL_DIR}" 2>/dev/null; then
                 log_info "SSH clone failed, trying HTTPS..."
                 git clone "${REPO_HTTPS}" "${INSTALL_DIR}"
@@ -179,7 +179,7 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
             ;;
     esac
 else
-    log_info "Cloning gob-nano to ${INSTALL_DIR}..."
+    log_info "Cloning gob-gob to ${INSTALL_DIR}..."
     
     # Try SSH first, fall back to HTTPS
     if ! git clone "${REPO_URL}" "${INSTALL_DIR}" 2>/dev/null; then
@@ -203,7 +203,7 @@ if [ ! -t 0 ]; then
     exec < /dev/tty || {
         log_error "This installer requires an interactive terminal."
         echo "Please run it directly, not piped:"
-        echo "  bash <(curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-nano/main/scripts/install.sh)"
+        echo "  bash <(curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-gob/main/scripts/install.sh)"
         exit 1
     }
 fi
@@ -325,13 +325,13 @@ fi
 log_info "Docker compose configuration is valid"
 
 # Verify service exists in docker-compose.yml
-if ! grep -q "nano:" docker/docker-compose.yml; then
-    log_error "Service 'nano' not found in docker-compose.yml!"
+if ! grep -q "gob:" docker/docker-compose.yml; then
+    log_error "Service 'gob' not found in docker-compose.yml!"
     log_error "Check docker/docker-compose.yml for service definition."
     exit 1
 fi
 
-log_info "Service 'nano' found in configuration"
+log_info "Service 'gob' found in configuration"
 
 
 
@@ -363,7 +363,7 @@ fi
 
 log_section "Installation Complete! 🎉"
 
-echo "✨ GOB-NANO is ready to use!"
+echo "✨ GOB-GOB is ready to use!"
 echo
 echo "📂 Installation directory: ${INSTALL_DIR}"
 echo
@@ -373,14 +373,14 @@ echo "   docker-compose -f docker/docker-compose.yml up"
 echo
 echo "🤖 To start the Discord bot:"
 echo "   cd ${INSTALL_DIR}"
-echo "   NANO_MODE=discord docker-compose -f docker/docker-compose.yml up"
+echo "   GOB_MODE=discord docker-compose -f docker/docker-compose.yml up"
 echo
 echo "🧪 To run tests:"
-echo "   docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -v"
+echo "   docker-compose -f docker/docker-compose.yml run --rm gob pytest tests/ -v"
 echo
 echo "📝 To edit configuration:"
-echo "   nano ${INSTALL_DIR}/.env"
-echo "   nano ${INSTALL_DIR}/config/config.yaml"
+echo "   gob ${INSTALL_DIR}/.env"
+echo "   gob ${INSTALL_DIR}/config/config.yaml"
 echo
 echo "📖 For more info:"
 echo "   cat ${INSTALL_DIR}/README.md"

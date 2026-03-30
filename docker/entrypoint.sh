@@ -20,8 +20,8 @@ RUN_MODE="${NANO_MODE:-tui}"
 echo "ℹ️  Starting agent in ${RUN_MODE} mode..."
 
 if [ "$RUN_MODE" = "discord" ]; then
-    python -m nano.main --mode discord
+    python -m gob.main --mode discord
 else
     # Default to TUI mode
-    python -m nano.main --mode tui
+    python -m gob.main --mode tui
 fi

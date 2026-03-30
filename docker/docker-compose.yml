@@ -1,6 +1,6 @@
 services:
-  nano:
-    image: gob-nano:latest
+  gob:
+    image: gob-gob:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -14,7 +14,7 @@ services:
     # Bind mounts for config and data
     volumes:
       - ./config:/a0/config
-      - ./src/nano/data:/a0/data
+      - ./src/gob/data:/a0/data
       - ./workdir:/a0/workdir
       - ./tmp:/a0/tmp
     
@@ -24,4 +24,4 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     
     # Command to run (can be overridden)
-    command: python -m src.nano.main --mode tui
+    command: python -m src.gob.main --mode tui

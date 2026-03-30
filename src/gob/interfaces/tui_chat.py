@@ -3,8 +3,8 @@ import sys
 import os
 from typing import Dict, Any, Optional
 
-from src.nano.orchestrator import AgentOrchestrator
-from src.nano.helpers.memory.memory import MemoryManager
+from src.gob.orchestrator import AgentOrchestrator
+from src.gob.helpers.memory.memory import MemoryManager
 
 
 # ANSI color codes

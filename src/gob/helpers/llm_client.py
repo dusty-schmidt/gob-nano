@@ -24,8 +24,8 @@ class LLMClient:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/dusty-schmidt/gob-nano",
-            "X-Title": "GOB-NANO Agent"
+            "HTTP-Referer": "https://github.com/dusty-schmidt/gob",
+            "X-Title": "GOB-GOB Agent"
         }
 
         payload = {
@@ -58,8 +58,8 @@ class LLMClient:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/dusty-schmidt/gob-nano",
-            "X-Title": "GOB-NANO Agent"
+            "HTTP-Referer": "https://github.com/dusty-schmidt/gob",
+            "X-Title": "GOB-GOB Agent"
         }
 
         payload = {

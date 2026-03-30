@@ -2,7 +2,7 @@
 # Secrets are loaded from .env file
 
 agent:
-  name: nano_agent
+  name: gob
   profile: default
 
 discord:
