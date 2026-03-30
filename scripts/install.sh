@@ -121,14 +121,27 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
     log_info "Repository exists at ${INSTALL_DIR}"
     echo
     echo "📌 Found existing installation. Choose an option:"
-    echo "   1) Delete old version and install fresh"
-    echo "   2) Install alongside (different directory name)"
-    echo "   3) Overwrite existing installation"
-    echo "   4) Cancel installation"
     echo
-    read -p "Enter choice (1-4): " CHOICE
+    echo "   1️⃣  Delete old version and install fresh (backs up first)"
+    echo "   2️⃣  Install alongside (different directory name)"
+    echo "   3️⃣  Overwrite existing installation (git pull)"
+    echo "   4️⃣  Cancel installation"
+    echo
     
-    case $CHOICE in
+    CHOICE=""
+    while [ -z "${CHOICE}" ] || ! [[ "${CHOICE}" =~ ^[1-4]$ ]]; do
+        read -p "👉 Enter your choice (1-4): " CHOICE
+        
+        if [ -z "${CHOICE}" ]; then
+            echo "❌ Please enter a number between 1 and 4"
+            CHOICE=""
+        elif ! [[ "${CHOICE}" =~ ^[1-4]$ ]]; then
+            echo "❌ Invalid choice '${CHOICE}'. Please enter 1, 2, 3, or 4."
+            CHOICE=""
+        fi
+    done
+    
+    case ${CHOICE} in
         1)
             log_info "Backing up old installation..."
             BACKUP_DIR="${INSTALL_DIR}-backup-$(date +%Y%m%d-%H%M%S)"
@@ -161,12 +174,8 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
             log_success "Repository updated"
             ;;
         4)
-            log_error "Installation cancelled"
+            log_error "Installation cancelled by user"
             exit 0
-            ;;
-        *)
-            log_error "Invalid choice. Cancelling installation."
-            exit 1
             ;;
     esac
 else
