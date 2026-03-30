@@ -1,12 +1,12 @@
-"""TUI Chat Interface for NANO - Simple terminal chat"""
+"""TUI Chat Interface for GOB - Simple terminal chat"""
 
 import os
+import asyncio
 
-from src.gob.helpers.memory.memory import MemoryManager
+from src.gob.core.memory.memory import MemoryManager
 from src.gob.orchestrator import AgentOrchestrator
 
 
-# ANSI color codes
 class Colors:
     """ANSI color codes for terminal output"""
 
@@ -154,8 +154,8 @@ class TUIChat:
 
   Agent Name:        {Colors.AGENT_FG}{agent_info['name']}{Colors.RESET}
   Description:       {agent_info['description']}
-  Model:             {Colors.INFO}{self.orchestrator.llm.model}{Colors.RESET}
-  Provider:          {self.orchestrator.llm.config.get('provider', 'unknown')}
+  Model:             {Colors.INFO}{self.orchestrator.llm.chat.model}{Colors.RESET}
+  Provider:          OpenRouter
   Max Iterations:    {agent_info['max_iterations']}
   Retry on Error:    {agent_info['retry_on_error']}
   
@@ -203,7 +203,7 @@ class TUIChat:
         elif cmd == "/restart":
             clear_screen()
             self._clear_history()
-            print_banner(self.agent_name, self.orchestrator.llm.model, self.agent_desc)
+            print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
             print(
                 f"{Colors.SUCCESS}{self.agent_name.capitalize()} restarted!{Colors.RESET} How can I help you?\n"
             )
@@ -228,7 +228,7 @@ class TUIChat:
         self.running = True
 
         clear_screen()
-        print_banner(self.agent_name, self.orchestrator.llm.model, self.agent_desc)
+        print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
 
         print(
             f"{Colors.SUCCESS}{self.agent_name.capitalize()} is ready!{Colors.RESET} Type /help for commands or start chatting.\n"
@@ -252,12 +252,10 @@ class TUIChat:
                     if not self._process_command(user_input):
                         break
                     continue
-
-                # Process message through orchestrator
+                
+                # Process message through orchestrator (async call wrapped in sync context)
                 try:
-                    response = self.orchestrator.process_message(
-                        user_input, self.conversation_id
-                    )
+                    response = asyncio.run(self.orchestrator.process_message(user_input, self.conversation_id))
 
                     # Format and print response
                     print(format_message("assistant", response, self.agent_name))
@@ -273,7 +271,7 @@ class TUIChat:
                 continue
             except EOFError:
                 print(
-                    f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}"
+                    f"{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}"
                 )
                 break
 

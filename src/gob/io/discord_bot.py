@@ -2,18 +2,19 @@ import discord
 from discord.ext import commands
 import logging
 import time
+import asyncio
 
 logger = logging.getLogger(__name__)
 
 class GobDiscordBot(commands.Bot):
-    def __init__(self, config, memory, llm_client):
+    def __init__(self, config, memory, orchestrator):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.messages = True
         super().__init__(command_prefix="!", intents=intents)
         self.config = config
         self.memory = memory
-        self.llm_client = llm_client
+        self.orchestrator = orchestrator
         self.last_message_time = {}  # Rate limiting: user_id -> timestamp
         self.rate_limit_window = 2.0  # 2 seconds cooldown
 
@@ -48,5 +49,11 @@ class GobDiscordBot(commands.Bot):
             await self._handle_conversation(message)
 
     async def _handle_conversation(self, message):
-        # Placeholder for conversation logic
-        pass
+        async with message.channel.typing():
+            try:
+                # Call orchestrator asynchronously
+                response = await self.orchestrator.process_message(message.content)
+                await message.channel.send(response)
+            except Exception as e:
+                logger.error(f"Error handling message: {e}")
+                await message.channel.send(f"Sorry, I encountered an error: {str(e)}")
