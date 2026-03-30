@@ -25,13 +25,9 @@ cd "$PROJECT_DIR"
 
 echo -e "${YELLOW}📍 Project directory: $PROJECT_DIR${NC}\n"
 
-# Step 1: Install dependencies
+# Step 1: Install system dependencies
 echo -e "${BLUE}[1/5] Installing system dependencies...${NC}"
-if [ -f "scripts/install.sh" ]; then
-    bash scripts/install.sh
-else
-    echo -e "${YELLOW}⚠️  install.sh not found, skipping system setup${NC}"
-fi
+echo -e "${YELLOW}⚠️  Manual step: Ensure python3, pip, and git are installed${NC}"
 
 # Step 2: Activate virtual environment
 echo -e "\n${BLUE}[2/5] Setting up Python environment...${NC}"
