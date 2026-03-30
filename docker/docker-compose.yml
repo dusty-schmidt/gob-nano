@@ -9,7 +9,7 @@ services:
     stdin_open: true
     tty: true
     
-    # Load environment variables from .env
+    # Load environment variables from .env (in parent directory)
     env_file:
       - ../.env
     
