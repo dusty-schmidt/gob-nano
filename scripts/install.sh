@@ -106,6 +106,10 @@ echo ""
 
 echo -e "${BLUE}Running setup wizard...${NC}"
 echo ""
+
+# Ensure wizard dependencies are installed in system python
+pip3 install -q pyyaml python-dotenv > /dev/null 2>&1
+
 cd "$INSTALL_DIR"
 python3 src/gob/core/setup_wizard.py
 
