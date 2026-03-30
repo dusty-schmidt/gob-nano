@@ -52,15 +52,37 @@ class GOBSetup:
             ("git", "Git command"),
             ("pip", "pip package manager"),
         ]
-        
+    def check_prerequisites(self) -> bool:
+        """Check git and pip"""
+        checks = [
+            ("git", "Git"),
+            ("pip3", "pip"),
+        ]
         for cmd, desc in checks:
-            try:
-                subprocess.run([cmd, "--version"], capture_output=True, check=True)
-                self.print_colored(f"✓ {desc} found", "\033[0;32m")
-            except subprocess.CalledProcessError:
+            if not shutil.which(cmd):
                 print(f"❌ {desc} not found - please install")
                 return False
         return True
+
+    def update_env_file(self, key: str, value: str):
+        """Update or add a key-value pair in .env file"""
+        env_lines = []
+        if self.env_path.exists():
+            with open(self.env_path, "r") as f:
+                env_lines = f.readlines()
+        
+        updated = False
+        for i, line in enumerate(env_lines):
+            if line.strip().startswith(f"{key}="):
+                env_lines[i] = f"{key}={value}\n"
+                updated = True
+                break
+        
+        if not updated:
+            env_lines.append(f"{key}={value}\n")
+        
+        with open(self.env_path, "w") as f:
+            f.writelines(env_lines)
 
     def create_venv(self) -> bool:
         """Create Python virtual environment"""
