@@ -4,9 +4,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.gob.helpers.llm_client import LLMClient
-from src.gob.helpers.memory.memory import MemoryManager
-from src.gob.helpers.tool_loader import load_tool
+from src.gob.core.llm_client import LLMClient
+from src.gob.core.memory.memory import MemoryManager
+from src.gob.core.tool_loader import load_tool
 
 
 class AgentOrchestrator:

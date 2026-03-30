@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 sys.path.insert(0, '/a0/usr/projects/gob')
 
 from src.gob.orchestrator import AgentOrchestrator
-from src.gob.helpers.config_loader import load_config
-from src.gob.helpers.memory.memory import MemoryManager
+from src.gob.core.config_loader import load_config
+from src.gob.core.memory.memory import MemoryManager
 
 class TestOrchestrator(unittest.TestCase):
     def setUp(self):

@@ -1,171 +1,99 @@
-"""GOB Agent - Main entry point"""
-
-import argparse
 import os
 import sys
+import logging
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Load environment variables from .env
-load_dotenv()
-
-
-from src.gob.helpers.agent_loader import load_agent
-from src.gob.helpers.config_loader import load_config
-from src.gob.helpers.llm_client import LLMClient
-from src.gob.helpers.memory.memory import MemoryManager
-from src.gob.helpers.setup_wizard import run_api_key_wizard, run_discord_wizard
+from src.gob.core.config_loader import load_config
+from src.gob.core.agent_loader import load_agent
+from src.gob.core.llm_client import LLMClient
+from src.gob.core.memory.memory import MemoryManager
+from src.gob.core.setup_wizard import run_api_key_wizard, run_discord_wizard
 from src.gob.orchestrator import AgentOrchestrator
-
+from src.gob.core.logger import setup_logger
 
 def main():
-    """Initialize and run the NANO agent"""
-    # Parse command line arguments first
-    parser = argparse.ArgumentParser(description="GOB-GOB Agent")
-    parser.add_argument(
-        "--mode",
-        choices=["tui", "discord", "validate"],
-        default="tui",
-        help="Run mode: tui (interactive chat), discord (bot), validate (check config only)",
-    )
-    args = parser.parse_args()
+    # Setup logging
+    logger = setup_logger()
+    logger.info("Starting GOB Agent...")
 
-    print("🚀 Starting GOB Agent...")
-
-    # Load configuration
+    # Load config
     try:
         config = load_config()
         logger.info("Config loaded")
     except Exception as e:
-        print(f"❌ Failed to load config: {e}")
+        logger.error(f"Failed to load config: {e}")
         sys.exit(1)
 
     # Load agent profile
     try:
         agent_profile = config.get("agent", {}).get("profile", "default")
-        agent = load_agent(agent_profile)
-        print(f"✅ Agent profile loaded: {agent.get('name', 'Unknown')}")
+        agent_config = load_agent(agent_profile)
+        logger.info(f"Agent profile loaded: {agent_config.get('name', agent_profile)}")
     except Exception as e:
-        print(f"❌ Failed to load agent: {e}")
+        logger.error(f"Failed to load agent profile: {e}")
         sys.exit(1)
 
-    # Initialize memory
+    # Initialize memory (SQLite)
     try:
-        memory_dir = Path(__file__).parent / "helpers" / "memory"
-        memory_dir.mkdir(parents=True, exist_ok=True)
-        memory_file = memory_dir / "memory.jsonl"
-        memory = MemoryManager(memory_file)
-        print(f"✅ Memory initialized: {memory_file}")
+        memory = MemoryManager()
+        logger.info(f"Memory initialized: {memory.db_path}")
     except Exception as e:
-        print(f"❌ Failed to initialize memory: {e}")
+        logger.error(f"Failed to initialize memory: {e}")
         sys.exit(1)
 
-    # Initialize LLM client with deferred setup
+    # Initialize LLM Client
     try:
         llm_config = config.get("llm", {})
-        llm = LLMClient(llm_config)
-        print(f"✅ LLM client initialized: {llm.model}")
-    except ValueError as e:
-        if "API key not configured" in str(e):
-            print("\n🔑 OpenRouter API key is missing.")
-            print("Starting setup wizard...\n")
-            run_api_key_wizard()
-            # Reload config to pick up new env var
-            load_dotenv()
-            try:
-                llm = LLMClient(config.get("llm", {}))
-                print(f"✅ LLM client initialized: {llm.model}")
-            except Exception as retry_e:
-                print(f"❌ Failed to initialize LLM after setup: {retry_e}")
-                sys.exit(1)
-        else:
-            print(f"❌ Failed to initialize LLM: {e}")
-            sys.exit(1)
+        llm_client = LLMClient(
+            endpoint=llm_config.get("endpoint"),
+            api_key=llm_config.get("api_key"),
+            model=llm_config.get("model"),
+            timeout=llm_config.get("timeout", 30)
+        )
+        logger.info(f"LLM client initialized: {llm_config.get('model')}")
     except Exception as e:
-        print(f"❌ Failed to initialize LLM: {e}")
+        logger.error(f"Failed to initialize LLM client: {e}")
         sys.exit(1)
 
-    # Initialize orchestrator
+    # Initialize Orchestrator
     try:
         orchestrator = AgentOrchestrator(
-            llm_client=llm,
+            llm_client=llm_client,
             memory=memory,
-            agent_config=agent,
-            tools_config=config.get("tools", {}),
+            agent_config=agent_config,
+            tools_config=config.get("tools", {})
         )
-        print(f"✅ Orchestrator initialized")
+        logger.info("Orchestrator initialized")
     except Exception as e:
-        print(f"❌ Failed to initialize orchestrator: {e}")
+        logger.error(f"Failed to initialize orchestrator: {e}")
         sys.exit(1)
 
-    print("")
-    print("═" * 50)
-    print("Agent initialized successfully!")
-    print("═" * 50)
-    print("")
+    # Argument parsing
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["tui", "discord", "validate"], default="tui")
+    args = parser.parse_args()
 
-    # Run in selected mode
     if args.mode == "validate":
-        print("✅ Configuration validation complete")
-        print(f"   Agent: {agent.get('name', 'Unknown')}")
-        print(f"   Model: {llm.model}")
-        print(f"   Tools: {', '.join(orchestrator.enabled_tools)}")
-        print("")
-        print("System is ready to run!")
+        logger.info("Configuration validation complete")
         return
 
-    elif args.mode == "tui":
-        print("Starting TUI chat interface...")
-        print("")
-        from src.gob.interfaces.tui_chat import run_tui_chat
-
-        run_tui_chat(orchestrator, memory)
-
-        # Suggest Discord setup after successful TUI session
-        print("")
-        print("═" * 50)
-        print("Session complete!")
-        print("═" * 50)
-        print("")
-
-        # Check if Discord is configured
-        discord_config = config.get("discord", {})
-        discord_token = discord_config.get("token", "")
-
-        if not discord_token or discord_token.startswith("${"):
-            print("💡 Want me always available in Discord?")
-            print("")
-            print("  1. Get a Discord token from Discord Developer Portal")
-            print("  2. Add it to .env: DISCORD_BOT_TOKEN=your_token")
-            print("  3. Run: python -m gob.main --mode discord")
-            print("")
-            print("")
-
+    if args.mode == "tui":
+        from src.gob.interfaces.tui_chat import TUIChat
+        ui = TUIChat(orchestrator)
+        ui.run()
     elif args.mode == "discord":
-        # Check if Discord is configured, if not, offer setup
-        discord_config = config.get("discord", {})
-        discord_token = discord_config.get("token", "")
-
-        if not discord_token or discord_token.startswith("${"):
-            print("\n🎮 Discord bot token is missing.")
-            print("Starting setup wizard...\n")
-            new_token = run_discord_wizard()
-            if new_token:
-                with open(".env", "a") as f:
-                    f.write(f"\nDISCORD_BOT_TOKEN={new_token}\n")
-                os.environ["DISCORD_BOT_TOKEN"] = new_token
-                discord_config["token"] = new_token
-            else:
-                print("\n⚠️  Skipping Discord setup. Exiting.")
-                return
-
-        print("Starting Discord bot...")
-        print("")
-        from src.gob.interfaces.discord_bot import run_discord_bot
-
-        run_discord_bot(orchestrator, memory, discord_config)
-
+        # Check for Discord token
+        discord_token = config.get("discord", {}).get("token")
+        if not discord_token:
+            discord_token = run_discord_wizard()
+        
+        from src.gob.interfaces.discord_bot import GobDiscordBot
+        bot = GobDiscordBot(config, memory, llm_client)
+        bot.run(discord_token)
 
 if __name__ == "__main__":
     main()
