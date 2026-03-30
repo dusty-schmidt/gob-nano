@@ -36,6 +36,10 @@ class GOBSetup:
         end_color = "\033[0m"
         print(f"{color}{text}{end_color}")
 
+    def colored(self, text: str, color: str = "\033[0;32m"):
+        """Return colored text"""
+        end_color = "\033[0m"
+        return f"{color}{text}{end_color}"
     def check_python_version(self) -> bool:
         """Check Python 3.9+ requirement"""
         version = (sys.version_info.major, sys.version_info.minor)
