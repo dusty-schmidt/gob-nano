@@ -70,9 +70,9 @@ def main():
 
     # Initialize memory
     try:
-        data_dir = Path(__file__).parent / "data"
-        data_dir.mkdir(parents=True, exist_ok=True)
-        memory_file = data_dir / "memory.jsonl"
+        memory_dir = Path(__file__).parent / "helpers" / "memory"
+        memory_dir.mkdir(parents=True, exist_ok=True)
+        memory_file = memory_dir / "memory.jsonl"
         memory = MemoryManager(memory_file)
         print(f"✅ Memory initialized: {memory_file}")
     except Exception as e:

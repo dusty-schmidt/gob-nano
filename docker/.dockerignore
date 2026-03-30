@@ -18,4 +18,15 @@ venv/
 Dockerfile
 docker-compose.yml
 README.md
+.a0proj/
+**/index.faiss
+**/index.pkl
+**/embedding.json
 LICENSE
+
+# Memory files - not needed in container
+.a0proj/
+src/gob/data/memory.jsonl
+src/gob/helpers/memory/memory.jsonl
+config/agents/*.mem
+
