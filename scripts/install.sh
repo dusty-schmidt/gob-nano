@@ -34,9 +34,10 @@ if ! command -v python3 &> /dev/null; then
     echo "   Install Python 3.9+: apt install python3 python3-venv python3-pip"
     exit 1
 fi
-
 PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-if (( $(echo "$PY_VERSION < 3.9" | bc -l) )); then
+if python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)"; then
+    echo -e "${GREEN}✓ Python $PY_VERSION${NC}"
+else
     echo -e "${RED}❌ Python 3.9+ required (found $PY_VERSION)${NC}"
     exit 1
 fi
