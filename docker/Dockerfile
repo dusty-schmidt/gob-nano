@@ -49,6 +49,10 @@ RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'exec "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
+# Copy entrypoint script
+COPY docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Default entrypoint and command
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "-m", "nano.main"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["python", "-m", "src.nano.main"]

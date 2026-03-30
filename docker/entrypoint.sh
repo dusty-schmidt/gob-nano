@@ -14,6 +14,14 @@ if [ ! -f "/app/config/config.yaml" ]; then
     python -m scripts.setup
 fi
 
-# Run the agent
-echo "ℹ️  Starting agent..."
-python -m nano.main
+# Determine run mode from environment variable (default to TUI)
+RUN_MODE="${NANO_MODE:-tui}"
+
+echo "ℹ️  Starting agent in ${RUN_MODE} mode..."
+
+if [ "$RUN_MODE" = "discord" ]; then
+    python -m nano.main --mode discord
+else
+    # Default to TUI mode
+    python -m nano.main --mode tui
+fi

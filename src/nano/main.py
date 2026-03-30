@@ -1,6 +1,7 @@
 """NANO Agent - Main entry point"""
 import os
 import sys
+import argparse
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -10,12 +11,24 @@ load_dotenv()
 from src.nano.helpers.config_loader import load_config
 from src.nano.helpers.agent_loader import load_agent
 from src.nano.helpers.memory.memory import MemoryManager
+from src.nano.helpers.llm_client import LLMClient
+from src.nano.orchestrator import AgentOrchestrator
 
 
 def main():
     """Initialize and run the NANO agent"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='GOB-NANO Agent')
+    parser.add_argument(
+        '--mode',
+        choices=['tui', 'discord', 'validate'],
+        default='tui',
+        help='Run mode: tui (interactive chat), discord (bot), validate (check config only)'
+    )
+    args = parser.parse_args()
+
     print("🚀 Starting NANO Agent...")
-    
+
     # Load configuration
     try:
         config = load_config()
@@ -23,7 +36,7 @@ def main():
     except Exception as e:
         print(f"❌ Failed to load config: {e}")
         sys.exit(1)
-    
+
     # Load agent profile
     try:
         agent_profile = config.get('agent', {}).get('profile', 'default')
@@ -32,7 +45,7 @@ def main():
     except Exception as e:
         print(f"❌ Failed to load agent: {e}")
         sys.exit(1)
-    
+
     # Initialize memory
     try:
         data_dir = Path(__file__).parent / "data"
@@ -43,25 +56,16 @@ def main():
     except Exception as e:
         print(f"❌ Failed to initialize memory: {e}")
         sys.exit(1)
-    
-    # Verify LLM configuration
+
+    # Initialize LLM client
     try:
         llm_config = config.get('llm', {})
-        provider = llm_config.get('provider')
-        model = llm_config.get('model')
-        api_key = llm_config.get('api_key')
-        
-        if not api_key or api_key.startswith('your_'):
-            print("⚠️  LLM API key not configured. Please set it in .env")
-            print(f"   Provider: {provider}")
-            print(f"   Model: {model}")
-            sys.exit(1)
-        
-        print(f"✅ LLM configured: {provider}/{model}")
+        llm = LLMClient(llm_config)
+        print(f"✅ LLM client initialized: {llm.model}")
     except Exception as e:
-        print(f"❌ Failed to verify LLM config: {e}")
+        print(f"❌ Failed to initialize LLM: {e}")
         sys.exit(1)
-    
+
     # List available tools
     try:
         from src.nano.helpers.tool_loader import load_tool
@@ -74,21 +78,48 @@ def main():
                 print(f"   ⚠️  Tool not found: {tool_name}")
     except Exception as e:
         print(f"❌ Failed to load tools: {e}")
-    
+
+    # Initialize orchestrator
+    try:
+        orchestrator = AgentOrchestrator(
+            llm_client=llm,
+            memory=memory,
+            agent_config=agent,
+            tools_config=config.get('tools', {})
+        )
+        print(f"✅ Orchestrator initialized")
+    except Exception as e:
+        print(f"❌ Failed to initialize orchestrator: {e}")
+        sys.exit(1)
+
     print("")
     print("═" * 50)
     print("Agent initialized successfully!")
     print("═" * 50)
     print("")
-    print("Configuration:")
-    print(f"  Agent: {agent.get('name', 'Unknown')}")
-    print(f"  Model: {llm_config.get('model')}")
-    print(f"  Memory file: {memory_file}")
-    print("")
-    print("Ready for tasks. This is a placeholder entry point.")
-    print("For Discord bot integration, implement bot handlers here.")
-    print("For interactive mode, implement REPL here.")
-    print("")
+
+    # Run in selected mode
+    if args.mode == 'validate':
+        print("✅ Configuration validation complete")
+        print(f"   Agent: {agent.get('name', 'Unknown')}")
+        print(f"   Model: {llm.model}")
+        print(f"   Tools: {', '.join(enabled_tools)}")
+        print("")
+        print("System is ready to run!")
+        return
+
+    elif args.mode == 'tui':
+        print("Starting TUI chat interface...")
+        print("")
+        from src.nano.interfaces.tui_chat import run_tui_chat
+        run_tui_chat(orchestrator, memory)
+
+    elif args.mode == 'discord':
+        print("Starting Discord bot...")
+        print("")
+        from src.nano.interfaces.discord_bot import run_discord_bot
+        discord_config = config.get('discord', {})
+        run_discord_bot(orchestrator, memory, discord_config)
 
 
 if __name__ == "__main__":

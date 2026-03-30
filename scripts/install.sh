@@ -367,9 +367,13 @@ echo "✨ GOB-NANO is ready to use!"
 echo
 echo "📂 Installation directory: ${INSTALL_DIR}"
 echo
-echo "🚀 To start the agent:"
+echo "🚀 To start the agent (TUI mode):"
 echo "   cd ${INSTALL_DIR}"
-echo "   docker-compose up"
+echo "   docker-compose -f docker/docker-compose.yml up"
+echo
+echo "🤖 To start the Discord bot:"
+echo "   cd ${INSTALL_DIR}"
+echo "   NANO_MODE=discord docker-compose -f docker/docker-compose.yml up"
 echo
 echo "🧪 To run tests:"
 echo "   docker-compose -f docker/docker-compose.yml run --rm nano pytest tests/ -v"
