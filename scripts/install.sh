@@ -65,21 +65,32 @@ echo ""
 # ─────────────────────────────────────────────────────────────────────────────
 
 INSTALL_DIR="$HOME/.local/share/gob"
+INSTALL_DIR="$HOME/.local/share/gob"
 
 if [ -d "$INSTALL_DIR" ]; then
     echo -e "${YELLOW}📦 GOB-01 already installed at $INSTALL_DIR${NC}"
-    echo ""
-    read -p "Update existing installation? (y/n): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Pulling latest changes..."
+    
+    # Check if running interactively
+    if [ -t 0 ]; then
+        # Interactive terminal, ask user
+        read -p "Update existing installation? (y/n): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "Pulling latest changes..."
+            cd "$INSTALL_DIR"
+            git pull origin main
+            echo -e "${GREEN}✓ Updated${NC}"
+        else
+            echo "Skipped"
+            echo -e "${BLUE}To use GOB, run: gob${NC}"
+            exit 0
+        fi
+    else
+        # Non-interactive (piped), default to updating
+        echo "Updating (non-interactive mode)..."
         cd "$INSTALL_DIR"
         git pull origin main
         echo -e "${GREEN}✓ Updated${NC}"
-    else
-        echo "Skipped"
-        echo -e "${BLUE}To use GOB, run: gob${NC}"
-        exit 0
     fi
 else
     echo -e "${BLUE}Cloning GOB-01...${NC}"
@@ -87,7 +98,6 @@ else
     git clone https://github.com/dusty-schmidt/gob-01.git "$INSTALL_DIR"
     echo -e "${GREEN}✓ Cloned to $INSTALL_DIR${NC}"
 fi
-
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
