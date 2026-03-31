@@ -5,8 +5,9 @@ import asyncio
 import logging
 import time
 
-from src.gob.core.memory.memory import MemoryManager
-from src.gob.orchestrator import AgentOrchestrator
+from gob.core.memory.memory import MemoryManager
+from gob.core.logger import log_to_chat
+from gob.orchestrator import AgentOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ def log_to_tui(level, message):
     from gob.core.logger import log_to_chat
     log_to_chat(level, f"[{timestamp}] {level}: {message}")
     # Also print to console for immediate feedback
-    print(f"{Colors.INFO}[{timestamp}] {level}: {message}{Colors.RESET}")
+    # Also print to console for immediate feedback
     print(f"{Colors.INFO}[{timestamp}] {level}: {message}{Colors.RESET}")
 
 
@@ -159,9 +160,7 @@ class TUIChat:
     def _clear_history(self):
         """Clear conversation history"""
         self.conversation_id = f"tui_session_{len(self.memory.get_all())}"
-        print(
-            f"{Colors.SUCCESS}Conversation history cleared for {self.agent_name}!{Colors.RESET}\n"
-        )
+        log_to_chat("INFO", f"Conversation history cleared for {self.agent_name}!")
 
     def _process_command(self, cmd: str) -> bool:
         """Process a slash command. Returns True if should continue."""
@@ -169,7 +168,7 @@ class TUIChat:
         logger.debug(f"Processing command: {cmd}")
 
         if cmd == "/exit" or cmd == "/quit":
-            print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
+            log_to_chat("INFO", f"Goodbye from {self.agent_name}!")
             self.running = False
             return False
 
@@ -194,8 +193,7 @@ class TUIChat:
             self._show_prompt()
 
         else:
-            print(f"{Colors.ERROR}Unknown command: {cmd}{Colors.RESET}")
-            print(f"Type {Colors.INFO}/help{Colors.RESET} for available commands\n")
+            log_to_chat("ERROR", f"Unknown command: {cmd}. Type /help for available commands")
         
         return True
 
@@ -203,7 +201,7 @@ class TUIChat:
         """Run the TUI chat loop"""
         clear_screen()
         print_banner(self.agent_name, self.orchestrator.llm.chat_model, self.agent_desc)
-        print(f"\n{Colors.SUCCESS}{self.agent_name} is ready! Type /help for commands or start chatting.{Colors.RESET}\n")
+        log_to_chat("INFO", f"{self.agent_name} is ready! Type /help for commands or start chatting.")
         
         self.running = True
         logger.info("Starting TUI chat loop")
@@ -237,7 +235,7 @@ class TUIChat:
                         
                         # Format and print the response
                         formatted_response = format_message("assistant", response, self.agent_name)
-                        print(formatted_response)
+                        log_to_chat("INFO", formatted_response)
                         
                         # Add to conversation memory
                         self.memory.add_conversation(self.conversation_id, "user", user_input)
@@ -247,10 +245,10 @@ class TUIChat:
                         error_time = time.time() - start_time
                         log_to_chat("ERROR", f"Failed to process message after {error_time:.1f}s: {e}")
                         error_msg = format_message("assistant", f"❌ Error: {str(e)}", self.agent_name)
-                        print(error_msg)
+                        log_to_chat("ERROR", error_msg)
 
             except KeyboardInterrupt:
-                print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
+                log_to_chat("INFO", f"Goodbye from {self.agent_name}!")
                 self.running = False
             except Exception as e:
                 logger.error(f"Error in chat loop: {e}")
