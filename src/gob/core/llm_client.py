@@ -248,6 +248,10 @@ class MultiLLM:
         """Chat completion using primary model"""
         return await self.chat_client.chat(messages, tools)
     
+    async def chat_complete(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None) -> str:
+        """Chat completion using primary model (alias for chat)"""
+        return await self.chat(messages, tools)
+    
     async def generate(self, messages: List[Dict], max_tokens: int = 512) -> str:
         """Generate text using utility model"""
         return await self.utility_client.generate(messages, max_tokens)
