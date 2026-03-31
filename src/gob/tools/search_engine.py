@@ -3,6 +3,8 @@
 This tool provides web search functionality using DuckDuckGo API with support for
 keyword searches, result formatting, and automatic package installation.
 """
+from typing import List, Dict, Any
+from gob.core.logger import log_to_chat
 
 import subprocess
 import sys
@@ -22,7 +24,7 @@ def search(query: str, max_results: int = 5) -> str:
         
     Example:
         >>> results = search("python list comprehension tutorial", max_results=3)
-        >>> print(results)
+        >>> log_to_chat("INFO", results)
         Search results:
         
         1. Python List Comprehension Tutorial
@@ -75,7 +77,7 @@ def execute(query: str, max_results: int = 5) -> str:
         
     Example:
         >>> results = execute("python tutorial", max_results=3)
-        >>> print(results)
+        >>> log_to_chat("INFO", results)
         # Returns formatted search results
     """
     return search(query, max_results)
@@ -90,7 +92,7 @@ def install_ddg() -> str:
         
     Example:
         >>> status = install_ddg()
-        >>> print(status)
+        >>> log_to_chat("INFO", status)
         duckduckgo-search installed successfully! Search is now available.
     """
     try:
