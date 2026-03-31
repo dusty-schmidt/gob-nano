@@ -24,3 +24,23 @@ def setup_logger(name='gob', level=logging.INFO):
     logger.addHandler(handler)
     
     return logger
+
+def log_to_chat(level: str, message: str):
+    """Log message to chat interface with proper formatting"""
+    logger = logging.getLogger('gob')
+    
+    # Map level string to logging level
+    level_map = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+    
+    log_level = level_map.get(level.upper(), logging.INFO)
+    logger.log(log_level, message)
+    
+    # Also print to console for immediate feedback
+    print(message)
+    return logger

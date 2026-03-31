@@ -11,12 +11,19 @@ from src.gob.orchestrator import AgentOrchestrator
 logger = logging.getLogger(__name__)
 
 # Chat logger that outputs to screen for debugging
-def log_to_chat(level, message):
+def log_to_tui(level, message):
     """Log message to chat screen for debugging"""
     timestamp = time.strftime('%H:%M:%S')
+    # Use the logger module's log_to_chat function
+    from gob.core.logger import log_to_chat
+    log_to_chat(level, f"[{timestamp}] {level}: {message}")
+    # Also print to console for immediate feedback
+    print(f"{Colors.INFO}[{timestamp}] {level}: {message}{Colors.RESET}")
     print(f"{Colors.INFO}[{timestamp}] {level}: {message}{Colors.RESET}")
 
 
+class Colors:
+    """ANSI color codes for terminal output"""
 class Colors:
     """ANSI color codes for terminal output"""
 
@@ -64,6 +71,9 @@ def print_banner(agent_name: str, model: str, description: str = ""):
 
   Commands: /help, /clear, /restart, /tools, /status, /prompt, /exit
 """
+    log_to_chat("INFO", f"\\n{banner}")
+    print(banner)
+    print(banner)
     print(banner)
 
 def format_message(

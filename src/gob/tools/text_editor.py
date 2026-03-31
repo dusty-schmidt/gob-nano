@@ -16,6 +16,34 @@ def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[s
         line_from: Starting line number (1-based, default: 1)
         line_to: Ending line number (1-based, default: None = read to end)
         
+    Returns:
+        Dict containing file content and metadata
+    """
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Handle line range
+        if line_from < 1:
+            line_from = 1
+        if line_to is None or line_to > len(lines):
+            line_to = len(lines)
+        
+        content_lines = lines[line_from-1:line_to]
+        content = ''.join(content_lines)
+        
+        return {
+            'content': content,
+            'path': path,
+            'line_from': line_from,
+            'line_to': line_to,
+            'total_lines': len(lines)
+        }
+    except FileNotFoundError:
+        return {'error': f'File not found: {path}'}
+    except Exception as e:
+        return {'error': f'Error reading file: {str(e)}'}
+
 def write(path: str, content: str) -> Dict[str, Any]:
     """
     Write content to file
@@ -26,12 +54,21 @@ def write(path: str, content: str) -> Dict[str, Any]:
         
     Returns:
         Dict containing the file path and success status
-        
-    Example:
-        >>> result = write("/path/to/file.txt", "Hello, World!")
-        >>> if result["success"]:
-        ...     print(f"File written to: {result['path']}")
     """
+    """
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return {
+            'path': path,
+            'success': True,
+            'message': f'File written successfully: {path}'
+        }
+    except Exception as e:
+        return {
+            'error': f'Error writing file: {str(e)}'
+        }
+
         
     Example:
         >>> result = read("/path/to/file.txt", line_from=1, line_to=10)

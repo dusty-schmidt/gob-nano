@@ -35,9 +35,9 @@ class LLMClient:
     """Primary chat model client"""
     
     def __init__(self, model: str = None, api_key: str = None, base_url: str = None):
-        self.model = model or os.getenv("CHAT_MODEL", "qwen/qwen3.5-flash-02-23")
-        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
-        self.base_url = base_url or "https://openrouter.ai/api/v1"
+        self.model = model or os.getenv("CHAT_MODEL", "llama3.2:3b")
+        self.api_key = api_key or os.getenv("OLLAMA_CLOUD_API_KEY")
+        self.base_url = base_url or "https://api.ollama.com/v1"
         self.timeout = 60
         
         # Validation
@@ -311,4 +311,31 @@ class MultiLLM:
         except Exception as e:
             total_time = time.time() - embed_start
             logger.error(f"Embedding failed after {total_time:.3f}s: {e}")
-            raise
+    
+    def embed(self, text: str) -> np.ndarray:
+        """Generate embeddings for text"""
+        start_time = time.time()
+        logger.info(f"Generating embeddings for text of length {len(text)}")
+        
+        try:
+            embedding = self.model.encode(text)
+            total_time = time.time() - start_time
+            logger.info(f"Embeddings generated in {total_time:.3f}s, shape: {embedding.shape}")
+            return embedding
+        except Exception as e:
+            total_time = time.time() - start_time
+            logger.error(f"Embedding failed after {total_time:.3f}s: {e}")
+            raise RuntimeError(f"Embedding failed: {str(e)}")
+
+
+class MultiLLMClient:
+    """Multi-model LLM client manager"""
+    
+    def __init__(self):
+        self.chat = LLMClient()
+        self.utility = UtilityLLMClient()
+        self.embeddings = EmbeddingClient()
+    
+    def get_chat_model(self):
+        """Get the current chat model name"""
+        return self.chat.model

@@ -13,10 +13,9 @@ from gob.core.config_loader import load_config
 from gob.core.llm_client import MultiLLMClient
 from gob.core.setup_wizard import GOBSetup
 from gob.core.logger import log_to_chat
-from gob.orchestrator import Orchestrator
-from gob.core.memory import Memory
-from gob.io.tui_chat import TUIChat
-from gob.io.discord_bot import DiscordBot
+from gob.orchestrator import AgentOrchestrator
+from gob.core.memory import MemoryManager
+from gob.io.discord_bot import GobDiscordBot
 
 
 def parse_args():
