@@ -61,20 +61,10 @@ def print_banner(agent_name: str, model: str, description: str = ""):
   Agent: {Colors.AGENT_FG}{agent_name}{Colors.RESET}
   Model: {Colors.INFO}{model}{Colors.RESET}
   {description}
-  
-  Type your messages below. Commands:
-    /help     - Show help
-    /clear    - Clear conversation history
-    /restart  - Restart session and clear screen
-    /tools    - List available tools
-    /status   - Show system status
-    /prompt   - View system prompt
-    /exit     - Exit the chat
 
-{Colors.BORDER}══════════════════════════════════════════════════════════════════════{Colors.RESET}
+  Commands: /help, /clear, /restart, /tools, /status, /prompt, /exit
 """
     print(banner)
-
 
 def format_message(
     role: str, content: str, agent_name: str = "gob", max_width: int = 70
@@ -126,26 +116,37 @@ class TUIChat:
         logger.info(f"TUI chat initialized with agent: {self.agent_name}")
 
     def _show_help(self):
-        """Show help message"""
+        """Show clean, modern help message with version info"""
+        # Read version from VERSION file
+        version = "0.2.2"  # Default fallback
+        try:
+            with open('/a0/usr/projects/gob/VERSION', 'r') as f:
+                version = f.read().strip()
+        except:
+            pass
+
         help_text = f"""
-{Colors.HEADER}Available Commands:{Colors.RESET}
-
-  /help    - Show this help message
-  /clear   - Clear conversation history
-  /restart - Restart session and clear screen
-  /tools   - List available tools
-  /status  - Show system status
-  /prompt  - View system prompt
-  /exit    - Exit the chat
-
-{Colors.INFO}Tips:{Colors.RESET}
-  • Just type naturally to chat with {self.agent_name}
-  • {self.agent_name} can search the web, run code, edit files
-  • Running on Arch Linux - can install packages via pacman/pip
-  • All tools execute in the Docker container
+{Colors.BORDER}┌──────────────────────────────────────────────────────┐{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  {Colors.BOLD}GOB Help - Version {version}{Colors.RESET}{' ' * (35 - len(version))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}├──────────────────────────────────────────────────────┤{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  {Colors.HEADER}Chat Commands{Colors.RESET}{' ' * (42 - len('Chat Commands'))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /help     - Show this help{' ' * (24)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /clear    - Clear conversation history{' ' * (17)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /restart  - Restart session{' ' * (23)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /exit     - Exit the chat{' ' * (26)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}{' ' * 52}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  {Colors.HEADER}System Commands{Colors.RESET}{' ' * (40 - len('System Commands'))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /tools    - List available tools{' ' * (20)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /status   - Show system status{' ' * (21)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • /prompt   - View system prompt{' ' * (21)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}{' ' * 52}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  {Colors.INFO}Quick Tips{Colors.RESET}{' ' * (44 - len('Quick Tips'))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • Type naturally to chat with {self.agent_name}{' ' * (18 - len(self.agent_name))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • {self.agent_name} can search the web, run code{' ' * (25 - len(self.agent_name))}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}│{Colors.RESET}  • All tools execute in the Docker container{' ' * (11)}{Colors.BORDER}│{Colors.RESET}
+{Colors.BORDER}└──────────────────────────────────────────────────────┘{Colors.RESET}
 """
         print(help_text)
-
     def _show_tools(self):
         """Show available tools"""
         agent_info = self.orchestrator.get_agent_info()
