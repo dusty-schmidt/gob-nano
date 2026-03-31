@@ -7,6 +7,7 @@ This script configures the system to use local embeddings instead of OpenRouter 
 import os
 import json
 from pathlib import Path
+from gob.core.logger import log_to_chat
 
 # Set environment variables to use local embeddings
 os.environ['EMBEDDING_MODEL'] = 'all-MiniLM-L6-v2'
@@ -40,17 +41,17 @@ local_model_config = {
 with open(config_dir / 'local_model_config.json', 'w') as f:
     json.dump(local_model_config, f, indent=2)
 
-print("✓ Embedding configuration updated to use local models")
-print("✓ Configuration files created in .a0proj/memory/")
-print("✓ System will now use local sentence-transformers for embeddings")
+log_to_chat("INFO", "✓ Embedding configuration updated to use local models")
+log_to_chat("INFO", "✓ Configuration files created in .a0proj/memory/")
+log_to_chat("INFO", "✓ System will now use local sentence-transformers for embeddings")
 
 # Test the embedding setup
-print("\nTesting embedding setup...")
+log_to_chat("INFO", "\nTesting embedding setup...")
 try:
     from gob.core.llm_client import EmbeddingClient
     embed_client = EmbeddingClient()
     test_embedding = embed_client.embed("test")
-    print(f"✓ Local embedding test successful: shape={test_embedding.shape}")
+    log_to_chat("INFO", f"✓ Local embedding test successful: shape={test_embedding.shape}")
 except Exception as e:
-    print(f"✗ Local embedding test failed: {e}")
-    print("  You may need to install sentence-transformers: pip install sentence-transformers")
+    log_to_chat("ERROR", f"✗ Local embedding test failed: {e}")
+    log_to_chat("WARNING", "  You may need to install sentence-transformers: pip install sentence-transformers")
