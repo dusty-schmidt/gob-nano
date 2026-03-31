@@ -10,6 +10,12 @@ from src.gob.orchestrator import AgentOrchestrator
 
 logger = logging.getLogger(__name__)
 
+# Chat logger that outputs to screen for debugging
+def log_to_chat(level, message):
+    """Log message to chat screen for debugging"""
+    timestamp = time.strftime('%H:%M:%S')
+    print(f"{Colors.INFO}[{timestamp}] {level}: {message}{Colors.RESET}")
+
 
 class Colors:
     """ANSI color codes for terminal output"""
@@ -165,7 +171,7 @@ class TUIChat:
   Retry on Error:    {agent_info['retry_on_error']}
   
   Memory:            {len(self.memory.get_all())} entries
-  Enabled Tools:     {len(agent_info['enabled_tools'])}
+  Enabled Tools:   {len(agent_info['enabled_tools'])}
 """
         print(status)
 
@@ -246,38 +252,40 @@ class TUIChat:
 
                 # Check for commands
                 if user_input.startswith("/"):
-                    if not self._process_command(user_input):
+                    continue_processing = self._process_command(user_input)
+                    if not continue_processing:
                         break
-                    continue
-
-                # Process user message
-                logger.info("Processing user message through orchestrator")
-                process_start = time.time()
-                
-                try:
-                    # Run the orchestrator to get response
-                    response = asyncio.run(self.orchestrator.process_message(user_input, self.conversation_id))
+                else:
+                    # Process user message with comprehensive logging
+                    log_to_chat("INFO", f"Processing message: {user_input[:50]}...")
+                    start_time = time.time()
                     
-                    process_time = time.time() - process_start
-                    logger.info(f"Orchestrator response received in {process_time:.3f}s")
-                    
-                    # Format and display response
-                    formatted_response = format_message("agent", response, self.agent_name)
-                    print(formatted_response)
-                    print()  # Add spacing
-                    
-                except Exception as e:
-                    process_time = time.time() - process_start
-                    logger.error(f"Error processing message after {process_time:.3f}s: {e}")
-                    print(f"{Colors.ERROR}Error: {str(e)}{Colors.RESET}\n")
+                    try:
+                        log_to_chat("DEBUG", "Calling orchestrator.process_message...")
+                        # Convert async call to sync for TUI
+                        import asyncio
+                        response = asyncio.run(self.orchestrator.process_message(user_input, self.conversation_id))
+                        total_time = time.time() - start_time
+                        log_to_chat("INFO", f"Response received in {total_time:.1f}s")
+                        
+                        # Format and print the response
+                        formatted_response = format_message("assistant", response, self.agent_name)
+                        print(formatted_response)
+                        
+                        # Add to conversation memory
+                        self.memory.add_conversation(self.conversation_id, "user", user_input)
+                        self.memory.add_conversation(self.conversation_id, "assistant", response)
+                        
+                    except Exception as e:
+                        error_time = time.time() - start_time
+                        log_to_chat("ERROR", f"Failed to process message after {error_time:.1f}s: {e}")
+                        error_msg = format_message("assistant", f"❌ Error: {str(e)}", self.agent_name)
+                        print(error_msg)
 
             except KeyboardInterrupt:
-                print(f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}")
-                logger.warning("Keyboard interrupt received")
-                
-            except EOFError:
                 print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
                 self.running = False
-                logger.info("EOF received, exiting")
-
-        logger.info("TUI chat loop ended")
+            except Exception as e:
+                logger.error(f"Error in chat loop: {e}")
+                log_to_chat("ERROR", f"Chat loop error: {e}")
+                self.running = False

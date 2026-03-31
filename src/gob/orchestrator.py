@@ -11,7 +11,14 @@ from src.gob.core.tool_loader import load_tool
 
 logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
+# Add a chat logger that outputs to screen for debugging
+chat_logger = logging.getLogger('gob.chat')
+chat_handler = logging.StreamHandler()
+chat_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+chat_logger.addHandler(chat_handler)
+chat_logger.setLevel(logging.INFO)
 class AgentOrchestrator:
     """Orchestrates agent reasoning and tool execution"""
 
@@ -105,7 +112,6 @@ If you don't need a tool, respond normally in plain text.
         for tool_name in self.enabled_tools:
             desc = tool_specs.get(tool_name, "No description available")
             descriptions.append(f"  • {tool_name}: {desc}")
-        return "\n".join(descriptions) if descriptions else "No tools configured."
         return "\n".join(descriptions) if descriptions else "No tools configured."
 
     def get_agent_info(self) -> dict:

@@ -86,9 +86,29 @@ class LLMClient:
                         raise RuntimeError(f"API error: {response.status} - {error_text}")
                     
                     result = await response.json()
-                    total_time = time.time() - start_time
-                    logger.info(f"LLM chat completed successfully in {total_time:.3f}s")
-                    return result["choices"][0]["message"]["content"]
+                    logger.debug(f"Full API response: {result}")
+                    
+                    # Safely extract content from response
+                    try:
+                        if "choices" in result and len(result["choices"]) > 0:
+                            content = result["choices"][0]["message"]["content"]
+                            logger.info(f"Successfully extracted content from choices")
+                        elif "message" in result:
+                            # Handle direct message response
+                            content = result["message"]["content"]
+                            logger.info(f"Successfully extracted content from direct message")
+                        else:
+                            # Fallback: try to extract any text field
+                            content = str(result)
+                            logger.warning(f"Could not extract proper message content, using raw response: {content[:100]}...")
+                        
+                        total_time = time.time() - start_time
+                        logger.info(f"LLM chat completed successfully in {total_time:.3f}s")
+                        return content
+                    except (KeyError, IndexError) as e:
+                        logger.error(f"Failed to extract content from API response: {e}")
+                        logger.error(f"Response structure: {result}")
+                        raise RuntimeError(f"Invalid API response structure: {str(e)}")
             except Exception as e:
                 total_time = time.time() - start_time
                 logger.error(f"LLM call failed after {total_time:.3f}s: {e}")
@@ -200,83 +220,95 @@ class EmbeddingClient:
         logger.debug(f"Generating embedding for text: {text[:50]}...")
         
         self._load_model()
-        try:
-            embedding = self._model.encode([text])
-            total_time = time.time() - start_time
-            logger.info(f"Embedding generated in {total_time:.3f}s")
-            return np.array(embedding[0])
-        except Exception as e:
-            total_time = time.time() - start_time
-            logger.error(f"Embedding generation failed after {total_time:.3f}s: {e}")
-            raise RuntimeError(f"Embedding generation failed: {str(e)}")
-    
-    def embed_batch(self, texts: List[str]) -> np.ndarray:
-        """Generate batch embeddings using local model with timing"""
-        start_time = time.time()
-        logger.debug(f"Generating batch embeddings for {len(texts)} texts")
         
-        self._load_model()
         try:
-            embeddings = self._model.encode(texts)
+            embedding = self._model.encode(text)
             total_time = time.time() - start_time
-            logger.info(f"Batch embeddings generated in {total_time:.3f}s")
-            return np.array(embeddings)
+            logger.info(f"Embedding generated in {total_time:.3f}s, shape: {embedding.shape}")
+            return embedding
         except Exception as e:
-            total_time = time.time() - start_time
-            logger.error(f"Batch embedding generation failed after {total_time:.3f}s: {e}")
-            raise RuntimeError(f"Batch embedding generation failed: {str(e)}")
+            logger.error(f"Embedding generation failed: {e}")
+            raise RuntimeError(f"Embedding generation failed: {str(e)}")
 
 
 class MultiLLM:
-    """Multi-model LLM orchestrator"""
+    """Multi-model LLM manager that coordinates chat, utility, and embedding clients"""
     
-    def __init__(self, config: dict):
-        self.config = config
-        self.chat_model = config.get("chat_model", "qwen/qwen3.5-flash-02-23")
-        self.utility_model = config.get("utility_model", "qwen/qwen3.5-flash-02-23")
-        self.embedding_model = config.get("embedding_model", "all-MiniLM-L6-v2")
+    def __init__(self, config: dict = None):
+        """Initialize MultiLLM with configuration"""
+        config = config or {}
+        
+        # Chat model configuration
+        chat_model = config.get("chat_model", os.getenv("CHAT_MODEL", "qwen/qwen3.5-flash-02-23"))
+        chat_key = config.get("api_key", os.getenv("OPENROUTER_API_KEY"))
+        chat_base = config.get("base_url")
+        
+        # Utility model configuration (for memory tasks)
+        utility_model = config.get("utility_model", os.getenv("UTILITY_MODEL", "qwen/qwen3.5-flash-02-23"))
+        utility_key = config.get("utility_key", chat_key)  # Use same key by default
+        utility_base = config.get("utility_base_url", chat_base)
+        
+        # Embedding model configuration
+        embedding_model = config.get("embedding_model", "all-MiniLM-L6-v2")
+        
+        logger.info(f"Initializing MultiLLM with chat_model: {chat_model}, utility_model: {utility_model}, embedding_model: {embedding_model}")
         
         # Initialize clients
-        api_key = config.get("api_key")
-        self.chat_client = LLMClient(self.chat_model, api_key)
-        self.utility_client = UtilityLLMClient(self.utility_model, api_key)
-        self.embedding_client = EmbeddingClient(self.embedding_model)
+        self.chat = LLMClient(model=chat_model, api_key=chat_key, base_url=chat_base)
+        self.utility = UtilityLLMClient(model=utility_model, api_key=utility_key, base_url=utility_base)
+        self.embedding = EmbeddingClient(model=embedding_model)
         
-        logger.info(f"MultiLLM initialized with chat: {self.chat_model}, utility: {self.utility_model}, embedding: {self.embedding_model}")
-    
-    async def chat(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None) -> str:
-        """Chat completion using primary model"""
-        return await self.chat_client.chat(messages, tools)
+        # Expose chat model name for convenience
+        self.chat_model = chat_model
+        
+        logger.info("MultiLLM initialization completed successfully")
     
     async def chat_complete(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None) -> str:
-        """Chat completion using primary model (alias for chat)"""
-        return await self.chat(messages, tools)
+        """Async chat completion wrapper"""
+        logger.info(f"MultiLLM chat_complete called with {len(messages)} messages")
+        chat_start = time.time()
+        
+        try:
+            result = await self.chat.chat(messages, tools)
+            total_time = time.time() - chat_start
+            logger.info(f"MultiLLM chat_complete completed in {total_time:.3f}s")
+            return result
+        except Exception as e:
+            total_time = time.time() - chat_start
+            logger.error(f"MultiLLM chat_complete failed after {total_time:.3f}s: {e}")
+            raise
     
-    async def generate(self, messages: List[Dict], max_tokens: int = 512) -> str:
-        """Generate text using utility model"""
-        return await self.utility_client.generate(messages, max_tokens)
+    async def generate_query(self, context: str, task: str) -> str:
+        """Generate a semantic search query from context"""
+        logger.info(f"Generating query for task: {task}")
+        query_start = time.time()
+        
+        try:
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant that generates concise search queries for memory retrieval."},
+                {"role": "user", "content": f"Based on this context: '{context}', generate a concise search query for finding relevant information about: {task}"}
+            ]
+            
+            query = await self.utility.generate(messages, max_tokens=50)
+            total_time = time.time() - query_start
+            logger.info(f"Query generated in {total_time:.3f}s: {query[:50]}...")
+            return query
+        except Exception as e:
+            total_time = time.time() - query_start
+            logger.error(f"Query generation failed after {total_time:.3f}s: {e}")
+            raise
     
-    async def generate_query(self, context: str, purpose: str) -> str:
-        """Generate a search query for memory retrieval"""
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant that generates concise search queries based on context."},
-            {"role": "user", "content": f"Given this context: {context}\n\nGenerate a concise search query for: {purpose}"}
-        ]
-        return await self.utility_client.generate(messages, max_tokens=64)
-    
-    def embed(self, text: str) -> np.ndarray:
-        """Generate embedding vector using local model"""
-        return self.embedding_client.embed(text)
-    
-    def embed_batch(self, texts: List[str]) -> np.ndarray:
-        """Generate batch embeddings using local model"""
-        return self.embedding_client.embed_batch(texts)
-    
-    def get_model_info(self) -> dict:
-        """Get information about current models"""
-        return {
-            "chat_model": self.chat_model,
-            "utility_model": self.utility_model,
-            "embedding_model": self.embedding_model,
-            "embedding_dimension": 384  # Fixed dimension for all-MiniLM-L6-v2
-        }
+    def embed_text(self, text: str) -> np.ndarray:
+        """Generate embeddings for text"""
+        logger.info(f"Embedding text of length: {len(text)}")
+        embed_start = time.time()
+        
+        try:
+            result = self.embedding.embed(text)
+            total_time = time.time() - embed_start
+            logger.info(f"Text embedded in {total_time:.3f}s")
+            return result
+        except Exception as e:
+            total_time = time.time() - embed_start
+            logger.error(f"Embedding failed after {total_time:.3f}s: {e}")
+            raise
