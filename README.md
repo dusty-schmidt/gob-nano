@@ -52,10 +52,8 @@ All config lives in two files:
 
 | File | Purpose |
 |------|---------|
-| `~/.local/share/gob/.env` | API keys and secrets |
-| `~/.local/share/gob/config/config.yaml` | Models, tools, agent behavior |
-
-See [docs/configuration.md](docs/configuration.md) for details.
+| `~/.gob/.env` | API keys and secrets |
+| `~/.gob/config/config.yaml` | Models, tools, agent behavior |
 
 ---
 
@@ -70,7 +68,7 @@ See [docs/configuration.md](docs/configuration.md) for details.
 - Or open a new terminal
 
 **API key missing after setup?**
-- Edit `~/.local/share/gob/.env` and add your OpenRouter key
+- Edit `~/.gob/.env` and add your OpenRouter key
 - Or run the installer again to re-prompt
 
 **Update GOB-01?**

@@ -93,10 +93,8 @@ if [ -d "$INSTALL_DIR" ]; then
     fi
 else
     echo -e "${BLUE}Cloning GOB-01...${NC}"
-    mkdir -p "$HOME/.local/share"
-    git clone /a0/usr/projects/gob "$INSTALL_DIR"
+    git clone https://github.com/dusty-schmidt/gob-01.git "$INSTALL_DIR"
     echo -e "${GREEN}✓ Cloned to $INSTALL_DIR${NC}"
-fi
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -185,14 +183,41 @@ echo -e "${BLUE}📚 Documentation:${NC} $INSTALL_DIR/README.md"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 6: Launch GOB
+# Phase 5: Done Message
 # ─────────────────────────────────────────────────────────────────────────────
 
-if [ -n "$GOB_OPENROUTER_API_KEY" ]; then
-    export GOB_OPENROUTER_API_KEY
-    echo -e "${BLUE}🚀 Starting GOB (API key provided)...${NC}"
+echo -e "${GREEN}═══════════════════════════════════════${NC}"
+echo -e "${GREEN}🎉 GOB-01 Installation Complete!${NC}"
+echo -e "${GREEN}═══════════════════════════════════════${NC}"
+echo ""
+echo -e "${BLUE}📍 Install Location:${NC} $INSTALL_DIR"
+echo ""
+echo -e "${BLUE}▶  Usage:${NC}"
+echo "   gob            # Start TUI chat"
+echo "   gob --discord  # Start Discord bot"
+echo "   gob --help     # See all options"
+echo ""
+echo -e "${BLUE}📚 Documentation:${NC} $INSTALL_DIR/README.md"
+echo ""
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 6: Post-Install Guidance
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [ -n "$GOB_OPENROUTER_API_KEY" ] || ( [ -f "$HOME/.gob/.env" ] && grep -q '^OPENROUTER_API_KEY=[^[:space:]]' "$HOME/.gob/.env" 2>/dev/null ); then
+    echo -e "${BLUE}🚀 Launching GOB...${NC}"
     exec ~/.local/bin/gob --tui
 else
-    echo -e "${BLUE}🚀 Starting GOB (no API key - will prompt)...${NC}"
-    exec ~/.local/bin/gob --tui
+    echo ""
+    echo -e "${YELLOW}⚠️  OpenRouter API key not found${NC}"
+    echo ""
+    echo "To complete setup:"
+    echo "  1. Get your free key from https://openrouter.ai/keys"
+    echo "  2. Edit ~/.gob/.env and add:"
+    echo "     OPENROUTER_API_KEY=your-key-here"
+    echo "  3. Run: gob --tui"
+    echo ""
+    echo "Or run the setup wizard again:"
+    echo "   ~/.gob/scripts/gob.sh setup"
+    echo ""
 fi

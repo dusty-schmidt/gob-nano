@@ -111,8 +111,8 @@ class GOBSetup:
         venv_python = str(self.venv_path / "bin" / "python") if sys.platform != "win32" else str(self.venv_path / "Scripts" / "python.exe")
         
         try:
-            subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True, capture_output=True)
-            subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], cwd=str(self.project_root), check=True, capture_output=True)
+            subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+            subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], cwd=str(self.project_root), check=True)
             self.print_colored("✓ All dependencies installed", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
