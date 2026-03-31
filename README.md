@@ -4,7 +4,14 @@
 - built in archlinux environment
 - native file system 
 - can maintain and evolve own codebase
+
+
+## Minimalism as THE template
+- no framework lock in
+- can run on edge devices
 - grows and evolves to suit user needs
+- no two gobs will end up the same
+
 
 ## Quick Start
 
