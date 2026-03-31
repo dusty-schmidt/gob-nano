@@ -57,17 +57,15 @@ All config lives in two files:
 
 ---
 
-## Troubleshooting
+## Installation
 
-**Installation failed?**
-- Ensure Python 3.9+, git, and pip are installed
-- Check internet connectivity
+One-command installer (fully idempotent, run multiple times safely):
 
-**`gob` command not found?**
-- Reload your shell: `source ~/.bashrc` or `source ~/.zshrc`
-- Or open a new terminal
+```bash
+curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-01/main/scripts/install.sh | bash
+```
 
-**API key missing after setup?**
+Installs to `~/.gob` and adds the `gob` command to your PATH.
 - Edit `~/.gob/.env` and add your OpenRouter key
 - Or run the installer again to re-prompt
 

@@ -105,14 +105,27 @@ class GOBSetup:
             return False
 
     def install_dependencies(self) -> bool:
-        """Install all required Python packages"""
+        """Install all required Python packages with progress feedback"""
         print("Installing Python dependencies...")
         
         venv_python = str(self.venv_path / "bin" / "python") if sys.platform != "win32" else str(self.venv_path / "Scripts" / "python.exe")
         
         try:
+            # Upgrade pip with progress
+            print("  → Upgrading pip...")
             subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
-            subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], cwd=str(self.project_root), check=True)
+            
+            # Install package with verbose output
+            print("  → Installing GOB package...")
+            result = subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], 
+                                    cwd=str(self.project_root), 
+                                    capture_output=True, 
+                                    text=True)
+            
+            if result.returncode != 0:
+                print(f"❌ Installation failed: {result.stderr}")
+                return False
+                
             self.print_colored("✓ All dependencies installed", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
@@ -240,6 +253,11 @@ DISCORD_BOT_TOKEN=
                 print(f"✓ LLM client configured (key found)")
             else:
                 print(f"⚠️  OpenRouter API key not found - agent needs key to run")
+                print(f"  → Add your API key to {self.env_path.absolute()}")
+                print(f"  → Get a free key at: https://openrouter.ai/keys")
+        except ImportError as e:
+            print(f"⚠️  Config validation skipped - dependencies not installed yet")
+            return True
         except Exception as e:
             print(f"❌ Config validation failed: {e}")
             all_passed = False
@@ -258,6 +276,7 @@ DISCORD_BOT_TOKEN=
         print(f"   bash scripts/gob.sh            # TUI chat")
         print(f"   bash scripts/gob.sh --discord  # Discord bot")
         print()
+
     def run(self):
         """Run complete setup"""
         self.print_header()

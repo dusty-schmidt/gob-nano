@@ -20,10 +20,10 @@ export PYTHONPATH="$ROOT/src:$PYTHONPATH"
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
 need_setup() {
-    # Wizard needed if venv missing OR .env missing OR key not set
+    # Wizard needed only on first install - venv missing or .env missing
     [ ! -f "$VENV_PYTHON" ] && return 0
-    [ ! -f "$ROOT/.env" ]   && return 0
-    grep -q "^OPENROUTER_API_KEY=." "$ROOT/.env" 2>/dev/null || return 0
+    [ ! -f "$ROOT/.env" ] && return 0
+    # Don't re-run wizard if API key is missing - user can add it manually
     return 1
 }
 
