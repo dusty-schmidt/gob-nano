@@ -3,9 +3,8 @@
 This tool provides functionality to read, write, and edit text files with support for
 line-based operations and patch-based modifications.
 """
-
 from typing import Dict, Any, List, Optional
-
+from gob.core.logger import log_to_chat
 
 def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[str, Any]:
     """
@@ -74,7 +73,7 @@ def write(path: str, content: str) -> Dict[str, Any]:
         >>> result = read("/path/to/file.txt", line_from=1, line_to=10)
         >>> if result["success"]:
         ...     content = result["content"]
-        ...     print(f"Read {len(content.splitlines())} lines")
+        ...     log_to_chat("INFO", f"Read {len(content.splitlines())} lines")
     """
     try:
         with open(path, "r") as f:
@@ -103,7 +102,7 @@ def write(path: str, content: str) -> Dict[str, Any]:
     Example:
         >>> result = write("/path/to/file.txt", "Hello, World!")
         >>> if result["success"]:
-        ...     print(f"File written to: {result['path']}")
+        ...     log_to_chat("INFO", f"File written to: {result['path']}")
     """
     try:
         with open(path, "w") as f:
