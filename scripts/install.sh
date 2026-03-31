@@ -114,7 +114,7 @@ if [ -n "$GOB_OPENROUTER_API_KEY" ]; then
 fi
 
 cd "$INSTALL_DIR"
-echo 'n' | python3 src/gob/core/setup_wizard.py
+echo | python3 src/gob/core/setup_wizard.py
 
 echo ""
 
@@ -187,17 +187,25 @@ echo ""
 # Phase 6: Post-Install Guidance
 # ─────────────────────────────────────────────────────────────────────────────
 
-if [ -n "$GOB_OPENROUTER_API_KEY" ] || ( [ -f "$HOME/.gob/.env" ] && grep -q '^OPENROUTER_API_KEY=[^[:space:]]' "$HOME/.gob/.env" 2>/dev/null ); then
+# Determine if we should auto-launch: need a real OpenRouter API key (starts with sk-or-)
+auto_launch=false
+if [ -n "$GOB_OPENROUTER_API_KEY" ] && echo "$GOB_OPENROUTER_API_KEY" | grep -q '^sk-or-'; then
+    auto_launch=true
+elif [ -f "$HOME/.gob/.env" ] && grep -q '^OPENROUTER_API_KEY=sk-or-' "$HOME/.gob/.env" 2>/dev/null; then
+    auto_launch=true
+fi
+
+if $auto_launch; then
     echo -e "${BLUE}🚀 Launching GOB...${NC}"
     exec ~/.local/bin/gob --tui
 else
     echo ""
-    echo -e "${YELLOW}⚠️  OpenRouter API key not found${NC}"
+    echo -e "${YELLOW}⚠️  OpenRouter API key not found or invalid${NC}"
     echo ""
     echo "To complete setup:"
     echo "  1. Get your free key from https://openrouter.ai/keys"
     echo "  2. Edit ~/.gob/.env and add:"
-    echo "     OPENROUTER_API_KEY=your-key-here"
+    echo "     OPENROUTER_API_KEY=sk-or-..."
     echo "  3. Run: gob --tui"
     echo ""
     echo "Or run the setup wizard again:"
