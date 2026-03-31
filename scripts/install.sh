@@ -129,9 +129,24 @@ echo ""
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/gob" << 'EOF'
 #!/bin/bash
-exec bash "$HOME/.gob/scripts/gob.sh" "$@"
+# Auto-detect GOB installation and use it
+GOB_ROOT=""
+
+# Check common GOB locations
+for path in "$HOME/.gob" "$HOME/THE-NET/repos/gob-01" "$(dirname "$(readlink -f "$0")")/.."; do
+    if [ -f "$path/scripts/gob.sh" ]; then
+        GOB_ROOT="$path"
+        break
+    fi
+done
+
+if [ -z "$GOB_ROOT" ]; then
+    echo "Error: Could not find GOB installation"
+    exit 1
+fi
+
+exec bash "$GOB_ROOT/scripts/gob.sh" "$@"
 EOF
-chmod +x "$HOME/.local/bin/gob"
 echo -e "${GREEN}✓ Created $HOME/.local/bin/gob${NC}"
 
 # Check if ~/.local/bin is in PATH

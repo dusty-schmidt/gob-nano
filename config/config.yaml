@@ -16,7 +16,7 @@ llm:
   # Primary chat model - used for all reasoning and responses
   chat_model: qwen/qwen3.5-flash-02-23
   # Utility model - cheap model for internal tasks (memory queries, summarization)
-  utility_model: qwen/qwen3.5-flash-02-23
+  utility_model: nvidia/nemotron-nano-9b-v2:free
   # Embedding model - local sentence-transformers model name (no API cost)
   embedding_model: all-MiniLM-L6-v2
 
