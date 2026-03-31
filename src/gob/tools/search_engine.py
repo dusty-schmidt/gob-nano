@@ -7,9 +7,6 @@ from typing import List, Dict, Any
 from gob.core.logger import log_to_chat
 
 import subprocess
-import sys
-from typing import List, Dict, Any
-
 
 def search(query: str, max_results: int = 5) -> str:
     """
