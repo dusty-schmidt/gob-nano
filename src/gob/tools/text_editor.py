@@ -6,6 +6,7 @@ line-based operations and patch-based modifications.
 from typing import Dict, Any, List, Optional
 from gob.core.logger import log_to_chat
 
+
 def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[str, Any]:
     """
     Read file content with optional line range specification
@@ -42,32 +43,6 @@ def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[s
         return {'error': f'File not found: {path}'}
     except Exception as e:
         return {'error': f'Error reading file: {str(e)}'}
-
-def write(path: str, content: str) -> Dict[str, Any]:
-    """
-    Write content to file
-    
-    Args:
-        path: Path to the file to write
-        content: Text content to write to the file
-        
-    Returns:
-        Dict containing the file path and success status
-    """
-    """
-    try:
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        return {
-            'path': path,
-            'success': True,
-            'message': f'File written successfully: {path}'
-        }
-    except Exception as e:
-        return {
-            'error': f'Error writing file: {str(e)}'
-        }
-
         
     Example:
         >>> result = read("/path/to/file.txt", line_from=1, line_to=10)
@@ -113,4 +88,42 @@ def write(path: str, content: str) -> Dict[str, Any]:
 
 
 def patch(path: str, edits: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Patch file with edits"""
+    """
+    Patch file with edits
+    
+    Args:
+        path: Path to the file to patch
+        edits: List of edit operations with 'from', 'to', and 'content' keys
+        
+    Returns:
+        Dict containing the file path and success status
+        
+    Example:
+        >>> edits = [{"from": 5, "to": 5, "content": "new line\\n"}]
+        >>> result = patch("/path/to/file.txt", edits)
+        >>> if result["success"]:
+        ...     print(f"Patched: {result['path']}")
+    """
+    try:
+        with open(path, "r") as f:
+            lines = f.readlines()
+        
+        # Apply edits in reverse order to maintain line numbers
+        for edit in sorted(edits, key=lambda x: x["from"], reverse=True):
+            start = edit["from"] - 1
+            end = edit.get("to", edit["from"])
+            content = edit.get("content", "")
+            
+            if "to" in edit:
+                # Replace range
+                lines[start:end] = [content]
+            else:
+                # Insert before
+                lines.insert(start, content)
+        
+        with open(path, "w") as f:
+            f.writelines(lines)
+        
+        return {"path": path, "success": True}
+    except Exception as e:
+        return {"error": str(e), "success": False}

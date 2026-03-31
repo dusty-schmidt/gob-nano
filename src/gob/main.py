@@ -17,6 +17,8 @@ from gob.orchestrator import AgentOrchestrator
 from gob.core.memory import MemoryManager
 from gob.io.discord_bot import GobDiscordBot
 
+logger = setup_logger()
+
 
 def parse_args():
     """Parse command line arguments"""
@@ -46,8 +48,13 @@ def check_and_setup_api_key():
         api_key = config.get("llm", {}).get("api_key") or os.getenv("OLLAMA_CLOUD_API_KEY")
         
         if not api_key:
+<<<<<<< HEAD
             log_to_chat("INFO", "🔑 Ollama API key not found. Let's set it up...")
             log_to_chat("INFO", "Get your free key at: https://ollama.com/download\n")
+=======
+            log_to_chat("INFO", "OpenRouter API key not found. Let's set it up...")
+            log_to_chat("INFO", "Get your free key at: https://openrouter.ai/keys")
+>>>>>>> micro-task-15-complexity-reduction
             
             # Run setup wizard
             setup = GOBSetup()
@@ -58,15 +65,26 @@ def check_and_setup_api_key():
             api_key = config.get("llm", {}).get("api_key") or os.getenv("OLLAMA_CLOUD_API_KEY")
             
             if api_key:
+<<<<<<< HEAD
                 log_to_chat("INFO", "✅ API key configured successfully!")
                 return True
             else:
                 log_to_chat("ERROR", "❌ API key setup failed. Please add your key to .env file manually.")
+=======
+                log_to_chat("INFO", "API key configured successfully!")
+                return True
+            else:
+                log_to_chat("ERROR", "API key setup failed. Please add your key to .env file manually.")
+>>>>>>> micro-task-15-complexity-reduction
                 return False
         
         return True
     except Exception as e:
+<<<<<<< HEAD
         log_to_chat("ERROR", f"❌ Error during API key setup: {e}")
+=======
+        log_to_chat("ERROR", f"Error during API key setup: {e}")
+>>>>>>> micro-task-15-complexity-reduction
         return False
 
 

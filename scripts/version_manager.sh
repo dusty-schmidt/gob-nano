@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # GOB Version Manager
 # Manages versioning for the GOB project
 
@@ -27,73 +27,17 @@ get_version() {
 
 # Set new version
 set_version() {
-    local new_version="$1"
-    
-    # Validate version format (semantic versioning)
-    if [[ ! "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo -e "${RED}Error: Version must follow semantic versioning (MAJOR.MINOR.PATCH)${NC}"
-        exit 1
-    fi
-    
-    # Update VERSION file
-    echo "$new_version" > "$VERSION_FILE"
-    
-    # Update version.py
-    cat > "$VERSION_PY" << PYTHON_EOF
-"""
-GOB Version Information
-
-This module contains version information for the GOB project.
-Follows semantic versioning (MAJOR.MINOR.PATCH)
-
-Version $new_version - $(date +%Y-%m-%d)
-"""
-
-__version__ = "$new_version"
-__version_info__ = ($(echo "$new_version" | tr '.' ' '))
-
-# Version history
-VERSION_HISTORY = {
-    "$new_version": {
-        "date": "$(date +%Y-%m-%d)",
-        "description": "Version $new_version release",
-        "features": []
-    }
-}
-
-def get_version():
-    """Get the current version string"""
-    return __version__
-
-def get_version_info():
-    """Get the version as a tuple"""
-    return __version_info__
-
-def get_version_history():
-    """Get the complete version history"""
-    return VERSION_HISTORY
-PYTHON_EOF
-
-    # Update pyproject.toml if it exists
-    if [ -f "$PROJECT_ROOT/pyproject.toml" ]; then
-        sed -i "s/^version.*/version = \"$new_version\"/' "$PROJECT_ROOT/pyproject.toml"
-    fi
-    
-    echo -e "${GREEN}✅ Version updated to $new_version${NC}"
+    local version="$1"
+    echo "$version" > "$VERSION_FILE"
+    echo -e "${GREEN}✅ Version set to $version${NC}"
 }
 
 # Create git tag
 create_tag() {
     local version="$1"
-    local message="$2"
-    
-    if [ -z "$message" ]; then
-        message="Release version $version"
-    fi
-    
-    # Create annotated tag
+    local message="${2:-Release version $version}"
     git tag -a "v$version" -m "$message"
-    echo -e "${GREEN}✅ Git tag 'v$version' created${NC}"
+    echo -e "${GREEN}✅ Git tag v$version created${NC}"
 }
 
 # Sync version files
@@ -110,17 +54,17 @@ show_version_history() {
     echo ""
     
     if [ -f "$VERSION_PY" ]; then
-        python3 -c "
+        python3 << 'PYEOF'
 import sys
-sys.path.insert(0, '$PROJECT_ROOT/src')
+sys.path.insert(0, "$PROJECT_ROOT/src")
 try:
     from gob.version import get_version_history
     history = get_version_history()
     for version, info in history.items():
-        print(f'{version} ({info[\\\"date\\\"]}): {info[\\\"description\\\"]}')
+        print(f'{version} ({info["date"]}): {info["description"]}')
 except ImportError:
     print('Version history not available')
-"
+PYEOF
     fi
 }
 
