@@ -4,28 +4,23 @@ GOB Version Information
 This module contains version information for the GOB project.
 Follows semantic versioning (MAJOR.MINOR.PATCH)
 
-Version 0.1.0 - Initial release with rate limiting protection
-- Enhanced LLM client with comprehensive error handling
-- Automatic API key detection and prompting
-- Rate limiting protection with exponential backoff
-- Fallback model support
+Version 0.2.0 - 2026-03-31
 """
 
-__version__ = "0.1.0"
-__version_info__ = (0, 1, 0)
+__version__ = "0.2.0"
+__version_info__ = (0, 2, 0)
 
 # Version history
 VERSION_HISTORY = {
+    "0.2.0": {
+        "date": "2026-03-31",
+        "description": "Enhanced version display and automatic version bumping",
+        "features": ["Enhanced version display", "Automatic version bumping", "Git hooks integration"]
+    },
     "0.1.0": {
         "date": "2026-03-31",
         "description": "Initial release with rate limiting protection",
-        "features": [
-            "Enhanced LLM client with comprehensive error handling",
-            "Automatic API key detection and prompting",
-            "Rate limiting protection with exponential backoff",
-            "Fallback model support",
-            "Enhanced gob.sh script with backup/restore capabilities"
-        ]
+        "features": ["Rate limiting protection", "Automatic API key setup", "Professional versioning"]
     }
 }
 
