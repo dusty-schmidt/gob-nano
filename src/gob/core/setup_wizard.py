@@ -10,7 +10,7 @@ import sys
 import subprocess
 import shutil
 from pathlib import Path
-from typing import Optional
+from gob.core.logger import log_to_chat
 
 class GOBSetup:
     """Complete setup wizard for GOB-01"""
@@ -29,13 +29,13 @@ class GOBSetup:
 
     def print_header(self):
         """Print colored header"""
-        print("")
-        print("=" * 70)
-        print(" 🚀 GOB-01 Complete Installation & Setup")
-        print("=" * 70)
-        print()
-        print(f" 📍 Project Directory: {self.project_root.absolute()}")
-        print()
+        log_to_chat("INFO", "")
+        log_to_chat("INFO", "=" * 70)
+        log_to_chat("INFO", " 🚀 GOB-01 Complete Installation & Setup")
+        log_to_chat("INFO", "=" * 70)
+        log_to_chat("INFO", "")
+        log_to_chat("INFO", f" 📍 Project Directory: {self.project_root.absolute()}")
+        log_to_chat("INFO", "")
 
     def print_colored(self, text: str, color: str = "\033[0;32m"):
         """Print colored text"""
@@ -54,7 +54,7 @@ class GOBSetup:
             self.print_colored(f"✓ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} found", "\033[0;32m")
             return True
         else:
-            print(f"❌ Python 3.9+ required (found {version[0]}.{version[1]})")
+            log_to_chat("ERROR", f"❌ Python 3.9+ required (found {version[0]}.{version[1]})")
             return False
 
     def check_prerequisites(self) -> bool:
@@ -95,41 +95,41 @@ class GOBSetup:
             self.print_colored(f"✓ Virtual environment exists", "\033[0;32m")
             return True
         
-        print("Creating virtual environment...")
+        log_to_chat("INFO", "Creating virtual environment...")
         try:
             subprocess.run([sys.executable, "-m", "venv", str(self.venv_path)], check=True)
             self.print_colored("✓ Virtual environment created", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to create venv: {e}")
+            log_to_chat("ERROR", f"❌ Failed to create venv: {e}")
             return False
 
     def install_dependencies(self) -> bool:
         """Install all required Python packages with progress feedback"""
-        print("Installing Python dependencies...")
+        log_to_chat("INFO", "Installing Python dependencies...")
         
         venv_python = str(self.venv_path / "bin" / "python") if sys.platform != "win32" else str(self.venv_path / "Scripts" / "python.exe")
         
         try:
             # Upgrade pip with progress
-            print("  → Upgrading pip...")
+            log_to_chat("INFO", "  → Upgrading pip...")
             subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
             
             # Install package with verbose output
-            print("  → Installing GOB package...")
+            log_to_chat("INFO", "  → Installing GOB package...")
             result = subprocess.run([venv_python, "-m", "pip", "install", "-e", "."], 
                                     cwd=str(self.project_root), 
                                     capture_output=True, 
                                     text=True)
             
             if result.returncode != 0:
-                print(f"❌ Installation failed: {result.stderr}")
+                log_to_chat("ERROR", f"❌ Installation failed: {result.stderr}")
                 return False
                 
             self.print_colored("✓ All dependencies installed", "\033[0;32m")
             return True
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to install dependencies: {e}")
+            log_to_chat("ERROR", f"❌ Failed to install dependencies: {e}")
             return False
 
     def create_env_file(self):
@@ -137,7 +137,7 @@ class GOBSetup:
         if self.env_path.exists():
             self.print_colored("✓ .env file exists", "\033[0;32m")
         else:
-            print("Creating .env file...")
+            log_to_chat("INFO", "Creating .env file...")
             env_template = """# GOB-01 Configuration Environment Variables
 
 # OpenRouter API Key (required for LLM)
@@ -154,21 +154,21 @@ DISCORD_BOT_TOKEN=
 
     def prompt_api_key(self):
         """Prompt for OpenRouter API key"""
-        print(f"\n{self.section_break}")
-        print(" 🔑 Step 1: OpenRouter API Key (REQUIRED)")
-        print(f"{self.section_break}\n")
+        log_to_chat("INFO", f"\n{self.section_break}")
+        log_to_chat("INFO", " 🔑 Step 1: OpenRouter API Key (REQUIRED)")
+        log_to_chat("INFO", f"{self.section_break}\n")
         
         # Check if key is provided in environment (non-interactive mode)
         env_key = os.environ.get("GOB_OPENROUTER_API_KEY")
         if env_key:
-            print("Found OpenRouter API key in environment.")
+            log_to_chat("INFO", "Found OpenRouter API key in environment.")
             self.update_env_file("OPENROUTER_API_KEY", env_key)
-            print(f"{self.colored('✓ API key configured from environment', self.GREEN)}")
+            log_to_chat("INFO", f"{self.colored('✓ API key configured from environment', self.GREEN)}")
             return
 
-        print("GOB needs an LLM to work. Get your free key at:")
-        print("https://openrouter.ai/keys\n")
-        print("Paste your OpenRouter API key below (or press Enter to skip):")
+        log_to_chat("INFO", "GOB needs an LLM to work. Get your free key at:")
+        log_to_chat("INFO", "https://openrouter.ai/keys\n")
+        log_to_chat("INFO", "Paste your OpenRouter API key below (or press Enter to skip):")
         
         # Check if running interactively
         if sys.stdin.isatty():
@@ -183,27 +183,26 @@ DISCORD_BOT_TOKEN=
         
         if key:
             self.update_env_file("OPENROUTER_API_KEY", key)
-            print(f"{self.colored('✓ API key configured', self.GREEN)}")
+            log_to_chat("INFO", f"{self.colored('✓ API key configured', self.GREEN)}")
         else:
-            print(f"{self.colored('⚠️  No API key provided', self.YELLOW)}")
+            log_to_chat("WARNING", f"{self.colored('⚠️  No API key provided', self.YELLOW)}")
 
     def prompt_discord_token(self):
         """Prompt for Discord Bot Token"""
-        print(f"\n{self.section_break}")
-        print(" 🎮 Step 2: Discord Bot Token (OPTIONAL)")
-        print(f"{self.section_break}\n")
+        log_to_chat("INFO", f"\n{self.section_break}")
+        log_to_chat("INFO", " 🎮 Step 2: Discord Bot Token (OPTIONAL)")
+        log_to_chat("INFO", f"{self.section_break}\n")
         
-        print("Set up Discord bot for 24/7 availability\n")
+        log_to_chat("INFO", "Set up Discord bot for 24/7 availability\n")
         
         # Check if token is provided in environment
         env_token = os.environ.get("DISCORD_BOT_TOKEN")
         if env_token:
-            print("Found Discord bot token in environment.")
-            self.update_env_file("DISCORD_BOT_TOKEN", env_token)
-            print(f"{self.colored('✓ Discord token configured from environment', self.GREEN)}")
+            log_to_chat("INFO", "Found Discord bot token in environment.")
+            log_to_chat("INFO", f"{self.colored('✓ Discord token configured from environment', self.GREEN)}")
             return
             
-        print("Set up Discord bot now? (y/n): ", end="")
+        log_to_chat("INFO", "Set up Discord bot now? (y/n): ", end="")
         
         # Check if running interactively
         if sys.stdin.isatty():
@@ -213,21 +212,21 @@ DISCORD_BOT_TOKEN=
             choice = "n"
             
         if choice == 'y':
-            print("\nEnter your Discord bot token:")
+            log_to_chat("INFO", "\nEnter your Discord bot token:")
             token = input("> ").strip()
             if token:
                 self.update_env_file("DISCORD_BOT_TOKEN", token)
-                print(f"{self.colored('✓ Discord token configured', self.GREEN)}")
+                log_to_chat("INFO", f"{self.colored('✓ Discord token configured', self.GREEN)}")
             else:
-                print(f"{self.colored('⚠️  No token provided', self.YELLOW)}")
+                log_to_chat("WARNING", f"{self.colored('⚠️  No token provided', self.YELLOW)}")
         else:
-            print(f"{self.colored('⚠️  Discord setup skipped', self.YELLOW)}")
+            log_to_chat("WARNING", f"{self.colored('⚠️  Discord setup skipped', self.YELLOW)}")
 
     def validate_installation(self) -> bool:
         """Validate that installation works"""
-        print(f"\n{self.section_break}")
-        print(" 🔍 Step 3: Validate Installation")
-        print(f"{self.section_break}\n")
+        log_to_chat("INFO", f"\n{self.section_break}")
+        log_to_chat("INFO", " 🔍 Step 3: Validate Installation")
+        log_to_chat("INFO", f"{self.section_break}\n")
         
         checks = [
             ("Python environment configured", self.venv_path.exists()),
@@ -237,9 +236,9 @@ DISCORD_BOT_TOKEN=
         all_passed = True
         for desc, check in checks:
             if check:
-                print(f"✓ {desc}")
+                log_to_chat("INFO", f"✓ {desc}")
             else:
-                print(f"❌ {desc}")
+                log_to_chat("ERROR", f"❌ {desc}")
                 all_passed = False
                 
         # Check LLM config
@@ -250,73 +249,73 @@ DISCORD_BOT_TOKEN=
             config = load_config()
             llm_config = config.get("llm", {})
             if llm_config.get("api_key"):
-                print(f"✓ LLM client configured (key found)")
+                log_to_chat("INFO", f"✓ LLM client configured (key found)")
             else:
-                print(f"⚠️  OpenRouter API key not found - agent needs key to run")
-                print(f"  → Add your API key to {self.env_path.absolute()}")
-                print(f"  → Get a free key at: https://openrouter.ai/keys")
+                log_to_chat("WARNING", f"⚠️  OpenRouter API key not found - agent needs key to run")
+                log_to_chat("WARNING", f"  → Add your API key to {self.env_path.absolute()}")
+                log_to_chat("WARNING", f"  → Get a free key at: https://openrouter.ai/keys")
         except ImportError as e:
-            print(f"⚠️  Config validation skipped - dependencies not installed yet")
+            log_to_chat("WARNING", f"⚠️  Config validation skipped - dependencies not installed yet")
             return True
         except Exception as e:
-            print(f"❌ Config validation failed: {e}")
+            log_to_chat("ERROR", f"❌ Config validation failed: {e}")
             all_passed = False
         
         return all_passed
 
     def print_complete_message(self):
         """Print completion message"""
-        print(f"\n{self.GREEN}═══════════════════════════════════════{self.NC}")
-        print(f"{self.GREEN} 🎉 SETUP COMPLETE!{self.NC}")
-        print(f"{self.GREEN}═══════════════════════════════════════{self.NC}")
-        print()
-        print(f"{self.BLUE} 📍 Project: {self.project_root.absolute()}{self.NC}")
-        print()
-        print(f"{self.BLUE} ▶  Start GOB:{self.NC}")
-        print(f"   bash scripts/gob.sh            # TUI chat")
-        print(f"   bash scripts/gob.sh --discord  # Discord bot")
-        print()
+        log_to_chat("INFO", f"\n{self.GREEN}═══════════════════════════════════════{self.NC}")
+        log_to_chat("INFO", f"{self.GREEN} 🎉 SETUP COMPLETE!{self.NC}")
+        log_to_chat("INFO", f"{self.GREEN}═══════════════════════════════════════{self.NC}")
+        log_to_chat("INFO", "")
+        log_to_chat("INFO", f"{self.BLUE} 📍 Project: {self.project_root.absolute()}{self.NC}")
+        log_to_chat("INFO", "")
+        log_to_chat("INFO", f"{self.BLUE} ▶  Start GOB:{self.NC}")
+        log_to_chat("INFO", f"   bash scripts/gob.sh            # TUI chat")
+        log_to_chat("INFO", f"   bash scripts/gob.sh --discord  # Discord bot")
+        log_to_chat("INFO", "")
 
     def run(self):
         """Run complete setup"""
         self.print_header()
         
         # Step 1: System Checks
-        print("─" * 70)
-        print(" ✅ Step 1: System Checks")
-        print("─" * 70)
+        log_to_chat("INFO", "─" * 70)
+        log_to_chat("INFO", " ✅ Step 1: System Checks")
+        log_to_chat("INFO", "─" * 70)
         
         if not self.check_python_version():
             return False
         if not self.check_prerequisites():
             return False
-        print()
+        log_to_chat("INFO", "")
         
         # Step 2: Create environment
-        print("─" * 70)
-        print(" ✅ Step 2: Create Python Environment")
-        print("─" * 70)
+        log_to_chat("INFO", "─" * 70)
+        log_to_chat("INFO", " ✅ Step 2: Create Python Environment")
+        log_to_chat("INFO", "─" * 70)
         
         if not self.create_venv():
             return False
         if not self.install_dependencies():
             return False
         self.create_env_file()
-        print()
+        log_to_chat("INFO", "")
         
         # Step 3: Configure credentials
-        print("─" * 70)
-        print(" ✅ Step 3: Configure Credentials")
-        print("─" * 70)
+        log_to_chat("INFO", "─" * 70)
+        log_to_chat("INFO", " ✅ Step 3: Configure Credentials")
+        log_to_chat("INFO", "─" * 70)
         
         self.prompt_api_key()
-        print()
+        log_to_chat("INFO", "")
         self.prompt_discord_token()
         
         # Step 4: Validate
-        print()
+        log_to_chat("INFO", "")
         if not self.validate_installation():
-            print("\n❌ Validation failed")
+            log_to_chat("ERROR", "\n❌ Validation failed")
             return False
         
         self.print_complete_message()
