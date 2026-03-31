@@ -7,6 +7,8 @@ from typing import List, Dict, Any
 from gob.core.logger import log_to_chat
 
 import subprocess
+import sys
+
 
 def search(query: str, max_results: int = 5) -> str:
     """
@@ -19,7 +21,6 @@ def search(query: str, max_results: int = 5) -> str:
     Returns:
         Formatted search results or error message
         
-    Example:
         >>> results = search("python list comprehension tutorial", max_results=3)
         >>> log_to_chat("INFO", results)
         Search results:
@@ -72,7 +73,6 @@ def execute(query: str, max_results: int = 5) -> str:
     Returns:
         Formatted search results or error message
         
-    Example:
         >>> results = execute("python tutorial", max_results=3)
         >>> log_to_chat("INFO", results)
         # Returns formatted search results
@@ -87,7 +87,6 @@ def install_ddg() -> str:
     Returns:
         Installation status message
         
-    Example:
         >>> status = install_ddg()
         >>> log_to_chat("INFO", status)
         duckduckgo-search installed successfully! Search is now available.
