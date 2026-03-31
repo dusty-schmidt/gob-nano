@@ -11,7 +11,7 @@ from src.gob.core.config_loader import load_config
 from src.gob.core.agent_loader import load_agent
 from src.gob.core.llm_client import MultiLLM
 from src.gob.core.memory.memory import MemoryManager
-from src.gob.core.logger import setup_logger
+from src.gob.core.logger import setup_logger, log_to_chat
 from src.gob.orchestrator import AgentOrchestrator
 from src.gob.core.setup_wizard import GOBSetup
 
@@ -77,8 +77,8 @@ def check_and_setup_api_key():
         api_key = config.get("llm", {}).get("api_key") or os.getenv("OPENROUTER_API_KEY")
         
         if not api_key:
-            print("🔑 OpenRouter API key not found. Let's set it up...")
-            print("Get your free key at: https://openrouter.ai/keys\n")
+            log_to_chat("INFO", "OpenRouter API key not found. Let's set it up...")
+            log_to_chat("INFO", "Get your free key at: https://openrouter.ai/keys")
             
             # Run setup wizard
             setup = GOBSetup()
@@ -89,15 +89,15 @@ def check_and_setup_api_key():
             api_key = config.get("llm", {}).get("api_key") or os.getenv("OPENROUTER_API_KEY")
             
             if api_key:
-                print("✅ API key configured successfully!")
+                log_to_chat("INFO", "API key configured successfully!")
                 return True
             else:
-                print("❌ API key setup failed. Please add your key to .env file manually.")
+                log_to_chat("ERROR", "API key setup failed. Please add your key to .env file manually.")
                 return False
         
         return True
     except Exception as e:
-        print(f"❌ Error during API key setup: {e}")
+        log_to_chat("ERROR", f"Error during API key setup: {e}")
         return False
 
 
