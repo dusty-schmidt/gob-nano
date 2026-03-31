@@ -4,7 +4,7 @@
 #
 # This script is self-contained and handles everything:
 # - Checks prerequisites (Python 3.9+, git)
- # - Clones repo to ~/.gob
+# - Clones repo to ~/.gob
 # - Runs setup wizard (deps, venv, .env, API key)
 # - Adds 'gob' command to PATH
 # - Is fully idempotent (run multiple times safely)
@@ -41,7 +41,6 @@ else
     echo -e "${RED}❌ Python 3.9+ required (found $PY_VERSION)${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ Python $PY_VERSION${NC}"
 
 # Check Git
 if ! command -v git &> /dev/null; then
@@ -95,6 +94,8 @@ else
     echo -e "${BLUE}Cloning GOB-01...${NC}"
     git clone https://github.com/dusty-schmidt/gob-01.git "$INSTALL_DIR"
     echo -e "${GREEN}✓ Cloned to $INSTALL_DIR${NC}"
+fi
+
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -162,24 +163,6 @@ else
     fi
 fi
 
-echo ""
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Phase 5: Done Message
-# ─────────────────────────────────────────────────────────────────────────────
-
-echo -e "${GREEN}═══════════════════════════════════════${NC}"
-echo -e "${GREEN}🎉 GOB-01 Installation Complete!${NC}"
-echo -e "${GREEN}═══════════════════════════════════════${NC}"
-echo ""
-echo -e "${BLUE}📍 Install Location:${NC} $INSTALL_DIR"
-echo ""
-echo -e "${BLUE}▶  Usage:${NC}"
-echo "   gob            # Start TUI chat"
-echo "   gob --discord  # Start Discord bot"
-echo "   gob --help     # See all options"
-echo ""
-echo -e "${BLUE}📚 Documentation:${NC} $INSTALL_DIR/README.md"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
