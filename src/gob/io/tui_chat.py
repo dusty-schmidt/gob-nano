@@ -2,9 +2,13 @@
 
 import os
 import asyncio
+import logging
+import time
 
 from src.gob.core.memory.memory import MemoryManager
 from src.gob.orchestrator import AgentOrchestrator
+
+logger = logging.getLogger(__name__)
 
 
 class Colors:
@@ -113,6 +117,7 @@ class TUIChat:
         self.running = False
         self.agent_name = orchestrator.agent.get("name", "gob")
         self.agent_desc = orchestrator.agent.get("description", "AI assistant")
+        logger.info(f"TUI chat initialized with agent: {self.agent_name}")
 
     def _show_help(self):
         """Show help message"""
@@ -188,6 +193,7 @@ class TUIChat:
     def _process_command(self, cmd: str) -> bool:
         """Process a slash command. Returns True if should continue."""
         cmd = cmd.lower().strip()
+        logger.debug(f"Processing command: {cmd}")
 
         if cmd == "/exit" or cmd == "/quit":
             print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
@@ -202,11 +208,8 @@ class TUIChat:
 
         elif cmd == "/restart":
             clear_screen()
-            self._clear_history()
             print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
-            print(
-                f"{Colors.SUCCESS}{self.agent_name.capitalize()} restarted!{Colors.RESET} How can I help you?\n"
-            )
+            logger.info("Session restarted")
 
         elif cmd == "/tools":
             self._show_tools()
@@ -219,64 +222,62 @@ class TUIChat:
 
         else:
             print(f"{Colors.ERROR}Unknown command: {cmd}{Colors.RESET}")
-            print("   Type /help for available commands\n")
-
+            print(f"Type {Colors.INFO}/help{Colors.RESET} for available commands\n")
+        
         return True
 
     def run(self):
         """Run the TUI chat loop"""
-        self.running = True
-
         clear_screen()
         print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
-
-        print(
-            f"{Colors.SUCCESS}{self.agent_name.capitalize()} is ready!{Colors.RESET} Type /help for commands or start chatting.\n"
-        )
+        print(f"\n{Colors.SUCCESS}{self.agent_name} is ready! Type /help for commands or start chatting.{Colors.RESET}\n")
+        
+        self.running = True
+        logger.info("Starting TUI chat loop")
 
         while self.running:
             try:
-                # Get user input with colored prompt
-                user_input = input(
-                    f"{Colors.USER_PROMPT}You:{Colors.RESET}       "
-                ).strip()
-
+                user_input = input(f"{Colors.USER_PROMPT}You:{Colors.RESET}       ").strip()
+                
                 if not user_input:
                     continue
-
-                # Add newline after user input for spacing
-                print()
+                
+                logger.info(f"Received user input: {user_input[:50]}...")
 
                 # Check for commands
                 if user_input.startswith("/"):
                     if not self._process_command(user_input):
                         break
                     continue
+
+                # Process user message
+                logger.info("Processing user message through orchestrator")
+                process_start = time.time()
                 
-                # Process message through orchestrator (async call wrapped in sync context)
                 try:
+                    # Run the orchestrator to get response
                     response = asyncio.run(self.orchestrator.process_message(user_input, self.conversation_id))
-
-                    # Format and print response
-                    print(format_message("assistant", response, self.agent_name))
-                    print()  # Extra newline after response
-
+                    
+                    process_time = time.time() - process_start
+                    logger.info(f"Orchestrator response received in {process_time:.3f}s")
+                    
+                    # Format and display response
+                    formatted_response = format_message("agent", response, self.agent_name)
+                    print(formatted_response)
+                    print()  # Add spacing
+                    
                 except Exception as e:
+                    process_time = time.time() - process_start
+                    logger.error(f"Error processing message after {process_time:.3f}s: {e}")
                     print(f"{Colors.ERROR}Error: {str(e)}{Colors.RESET}\n")
 
             except KeyboardInterrupt:
-                print(
-                    f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}"
-                )
-                continue
+                print(f"\n\n{Colors.WARNING}Interrupted. Use /exit to quit properly.{Colors.RESET}")
+                logger.warning("Keyboard interrupt received")
+                
             except EOFError:
-                print(
-                    f"{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}"
-                )
-                break
+                print(f"\n{Colors.SUCCESS}Goodbye from {self.agent_name}!{Colors.RESET}")
+                self.running = False
+                logger.info("EOF received, exiting")
 
-
-def run_tui_chat(orchestrator: AgentOrchestrator, memory: MemoryManager):
-    """Run the TUI chat interface"""
-    chat = TUIChat(orchestrator, memory)
-    chat.run()
+        logger.info("TUI chat loop ended")
