@@ -173,7 +173,6 @@ pytest tests/ -v
 
 ### Getting Help
 
-- Check `docs/configuration.md` for configuration details
 - Check `docs/tools.md` for tool documentation
 - Run `python -m gob.main --help` for CLI help
 
