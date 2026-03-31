@@ -162,8 +162,12 @@ DISCORD_BOT_TOKEN=
             key = input("> ").strip()
         else:
             # Non-interactive mode (piped input) - read from stdin
-            key = sys.stdin.readline().strip()
-            
+            # If env var is set, use it. Otherwise, read from stdin.
+            if env_key:
+                key = env_key
+            else:
+                key = sys.stdin.readline().strip()
+        
         if key:
             self.update_env_file("OPENROUTER_API_KEY", key)
             print(f"{self.colored('✓ API key configured', self.GREEN)}")

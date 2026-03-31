@@ -229,7 +229,7 @@ class TUIChat:
     def run(self):
         """Run the TUI chat loop"""
         clear_screen()
-        print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
+        print_banner(self.agent_name, self.orchestrator.llm.chat_model, self.agent_desc)
         print(f"\n{Colors.SUCCESS}{self.agent_name} is ready! Type /help for commands or start chatting.{Colors.RESET}\n")
         
         self.running = True

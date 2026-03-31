@@ -10,7 +10,7 @@ A minimal, production-ready AI agent that treats Discord as the bridge for colla
 curl -fsSL https://raw.githubusercontent.com/dusty-schmidt/gob-01/main/scripts/install.sh | bash
 ```
 
-This installs GOB-01 to `~/.local/share/gob` and adds the `gob` command to your PATH.
+This installs GOB-01 to `~/.gob` and adds the `gob` command to your PATH.
 
 ---
 

@@ -4,7 +4,7 @@
 #
 # This script is self-contained and handles everything:
 # - Checks prerequisites (Python 3.9+, git)
-# - Clones repo to ~/.local/share/gob
+ # - Clones repo to ~/.gob
 # - Runs setup wizard (deps, venv, .env, API key)
 # - Adds 'gob' command to PATH
 # - Is fully idempotent (run multiple times safely)
@@ -64,8 +64,7 @@ echo ""
 # Phase 2: Clone or Update Repository
 # ─────────────────────────────────────────────────────────────────────────────
 
-INSTALL_DIR="$HOME/.local/share/gob"
-INSTALL_DIR="$HOME/.local/share/gob"
+INSTALL_DIR="$HOME/.gob"
 
 if [ -d "$INSTALL_DIR" ]; then
     echo -e "${YELLOW}📦 GOB-01 already installed at $INSTALL_DIR${NC}"
@@ -95,7 +94,7 @@ if [ -d "$INSTALL_DIR" ]; then
 else
     echo -e "${BLUE}Cloning GOB-01...${NC}"
     mkdir -p "$HOME/.local/share"
-    git clone https://github.com/dusty-schmidt/gob-01.git "$INSTALL_DIR"
+    git clone /a0/usr/projects/gob "$INSTALL_DIR"
     echo -e "${GREEN}✓ Cloned to $INSTALL_DIR${NC}"
 fi
 echo ""
@@ -116,7 +115,7 @@ if [ -n "$GOB_OPENROUTER_API_KEY" ]; then
 fi
 
 cd "$INSTALL_DIR"
-python3 src/gob/core/setup_wizard.py
+echo 'n' | python3 src/gob/core/setup_wizard.py
 
 echo ""
 
@@ -131,7 +130,7 @@ echo ""
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/gob" << 'EOF'
 #!/bin/bash
-exec bash "$HOME/.local/share/gob/scripts/gob.sh" "$@"
+exec bash "$HOME/.gob/scripts/gob.sh" "$@"
 EOF
 chmod +x "$HOME/.local/bin/gob"
 echo -e "${GREEN}✓ Created $HOME/.local/bin/gob${NC}"
