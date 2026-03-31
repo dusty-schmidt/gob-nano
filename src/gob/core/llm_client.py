@@ -8,9 +8,25 @@ import logging
 import time
 from typing import Dict, List, Optional
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import asyncio
+import warnings
+from sentence_transformers import SentenceTransformer
 
+# Comprehensive warning suppression for embedding models
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# Suppress Hugging Face Hub warnings
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+
+# Suppress transformers and sentence-transformers logging
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub.file_download").setLevel(logging.ERROR)
 
 logger = logging.getLogger(__name__)
 
@@ -212,76 +228,51 @@ class EmbeddingClient:
 
 
 class MultiLLM:
-    """Multi-LLM layer that routes tasks to appropriate models"""
+    """Multi-model LLM orchestrator"""
     
-    def __init__(
-        self,
-        config: dict = None,
-        chat_model: str = None,
-        utility_model: str = None,
-        embedding_model: str = None
-    ):
-        if config:
-            chat_model = chat_model or config.get('chat_model')
-            utility_model = utility_model or config.get('utility_model')
-            embedding_model = embedding_model or config.get('embedding_model')
+    def __init__(self, config: dict):
+        self.config = config
+        self.chat_model = config.get("chat_model", "qwen/qwen3.5-flash-02-23")
+        self.utility_model = config.get("utility_model", "qwen/qwen3.5-flash-02-23")
+        self.embedding_model = config.get("embedding_model", "all-MiniLM-L6-v2")
         
-        logger.info(f"MultiLLM initialized - Chat: {chat_model}, Utility: {utility_model}, Embedding: {embedding_model}")
+        # Initialize clients
+        api_key = config.get("api_key")
+        self.chat_client = LLMClient(self.chat_model, api_key)
+        self.utility_client = UtilityLLMClient(self.utility_model, api_key)
+        self.embedding_client = EmbeddingClient(self.embedding_model)
         
-        self.chat = LLMClient(model=chat_model)
-        self.utility = UtilityLLMClient(model=utility_model)
-        self.embedding = EmbeddingClient()  # Offline, no model needed usually
+        logger.info(f"MultiLLM initialized with chat: {self.chat_model}, utility: {self.utility_model}, embedding: {self.embedding_model}")
     
-    async def chat_complete(self, messages: List[Dict]) -> str:
-        """Expensive model for reasoning - use sparingly"""
-        logger.info("MultiLLM: Starting expensive chat completion")
-        return await self.chat.chat(messages)
+    async def chat(self, messages: List[Dict[str, str]], tools: Optional[List[Dict]] = None) -> str:
+        """Chat completion using primary model"""
+        return await self.chat_client.chat(messages, tools)
     
-    async def summarize(self, text: str, prompt: str = None) -> str:
-        """Cheap model for summarization tasks"""
-        start_time = time.time()
-        logger.info(f"MultiLLM: Starting summarization task")
-        
-        if not prompt:
-            prompt = f"Summarize this concisely in 2 paragraphs:\n{text}"
-        
-        try:
-            result = await self.utility.generate([{"role": "user", "content": prompt}])
-            total_time = time.time() - start_time
-            logger.info(f"MultiLLM: Summarization completed in {total_time:.3f}s")
-            return result
-        except Exception as e:
-            total_time = time.time() - start_time
-            logger.error(f"MultiLLM: Summarization failed after {total_time:.3f}s: {e}")
-            raise
+    async def generate(self, messages: List[Dict], max_tokens: int = 512) -> str:
+        """Generate text using utility model"""
+        return await self.utility_client.generate(messages, max_tokens)
     
-    async def generate_query(self, context: str, task: str) -> str:
-        """Cheap model to generate search queries for memory recall"""
-        start_time = time.time()
-        logger.info(f"MultiLLM: Starting query generation for task: {task}")
-        
-        prompt = f"""You are a memory retrieval specialist. Analyze this context and generate a precise search query to find relevant stored memories.
-
-Context: {context}
-
-Generate a search query (1-2 sentences) that will match relevant memories."""
-        
-        try:
-            result = await self.utility.generate([{"role": "user", "content": prompt}])
-            total_time = time.time() - start_time
-            logger.info(f"MultiLLM: Query generation completed in {total_time:.3f}s")
-            return result
-        except Exception as e:
-            total_time = time.time() - start_time
-            logger.error(f"MultiLLM: Query generation failed after {total_time:.3f}s: {e}")
-            raise
+    async def generate_query(self, context: str, purpose: str) -> str:
+        """Generate a search query for memory retrieval"""
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that generates concise search queries based on context."},
+            {"role": "user", "content": f"Given this context: {context}\n\nGenerate a concise search query for: {purpose}"}
+        ]
+        return await self.utility_client.generate(messages, max_tokens=64)
     
     def embed(self, text: str) -> np.ndarray:
-        """Offline embedding - no API cost"""
-        logger.debug("MultiLLM: Starting offline embedding")
-        return self.embedding.embed(text)
+        """Generate embedding vector using local model"""
+        return self.embedding_client.embed(text)
     
     def embed_batch(self, texts: List[str]) -> np.ndarray:
-        """Offline batch embedding - no API cost"""
-        logger.debug(f"MultiLLM: Starting batch embedding for {len(texts)} texts")
-        return self.embedding.embed_batch(texts)
+        """Generate batch embeddings using local model"""
+        return self.embedding_client.embed_batch(texts)
+    
+    def get_model_info(self) -> dict:
+        """Get information about current models"""
+        return {
+            "chat_model": self.chat_model,
+            "utility_model": self.utility_model,
+            "embedding_model": self.embedding_model,
+            "embedding_dimension": 384  # Fixed dimension for all-MiniLM-L6-v2
+        }
