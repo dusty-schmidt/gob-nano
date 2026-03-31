@@ -1,8 +1,13 @@
 """Text editor tool - Read/write/edit files
 
+from gob.core.logger import log_to_chat
 This tool provides functionality to read, write, and edit text files with support for
 line-based operations and patch-based modifications.
 """
+<<<<<<< ours
+=======
+
+>>>>>>> theirs
 from typing import Dict, Any, List, Optional
 from gob.core.logger import log_to_chat
 
@@ -17,6 +22,7 @@ def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[s
         line_to: Ending line number (1-based, default: None = read to end)
         
     Returns:
+<<<<<<< ours
         Dict containing file content and metadata
     """
     try:
@@ -43,6 +49,9 @@ def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[s
         return {'error': f'File not found: {path}'}
     except Exception as e:
         return {'error': f'Error reading file: {str(e)}'}
+=======
+        Dict containing the file content and success status
+>>>>>>> theirs
         
     Example:
         >>> result = read("/path/to/file.txt", line_from=1, line_to=10)
@@ -89,6 +98,7 @@ def write(path: str, content: str) -> Dict[str, Any]:
 
 def patch(path: str, edits: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
+<<<<<<< ours
     Patch file with edits
     
     Args:
@@ -103,12 +113,27 @@ def patch(path: str, edits: List[Dict[str, Any]]) -> Dict[str, Any]:
         >>> result = patch("/path/to/file.txt", edits)
         >>> if result["success"]:
         ...     print(f"Patched: {result['path']}")
+=======
+    Patch file with line-based edits
+    
+    Args:
+        path: Path to the file to patch
+        edits: List of edit dictionaries with 'from', 'to', and 'content' keys
+        
+    Returns:
+        Dict containing success status and any error messages
+        
+    Example:
+        >>> edits = [{"from": 5, "to": 5, "content": "new line 5\\n"}]
+        >>> result = patch("/path/to/file.txt", edits)
+>>>>>>> theirs
     """
     try:
         with open(path, "r") as f:
             lines = f.readlines()
         
         # Apply edits in reverse order to maintain line numbers
+<<<<<<< ours
         for edit in sorted(edits, key=lambda x: x["from"], reverse=True):
             start = edit["from"] - 1
             end = edit.get("to", edit["from"])
@@ -125,5 +150,27 @@ def patch(path: str, edits: List[Dict[str, Any]]) -> Dict[str, Any]:
             f.writelines(lines)
         
         return {"path": path, "success": True}
+=======
+        sorted_edits = sorted(edits, key=lambda x: x.get('from', 0), reverse=True)
+        
+        for edit in sorted_edits:
+            from_line = edit.get('from', 1) - 1  # Convert to 0-indexed
+            to_line = edit.get('to', edit.get('from', 1))  # Default to single line if 'to' not specified
+            content = edit.get('content', '')
+            
+            # Ensure we don't go out of bounds
+            if from_line < 0:
+                from_line = 0
+            if to_line > len(lines):
+                to_line = len(lines)
+            
+            # Replace the specified range with new content
+            lines[from_line:to_line] = [content]
+        
+        with open(path, "w") as f:
+            f.writelines(lines)
+            
+        return {"success": True}
+>>>>>>> theirs
     except Exception as e:
         return {"error": str(e), "success": False}
