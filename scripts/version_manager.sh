@@ -110,7 +110,7 @@ try:
     from gob.version import get_version_history
     history = get_version_history()
     for version, info in history.items():
-        print(f'{version} ({info[\"date\"]}): {info[\"description\"]}')
+        print(f'{version} ({info[\\"date\\"]}): {info[\\"description\\"]}')
 except ImportError:
     print('Version history not available')
 "
