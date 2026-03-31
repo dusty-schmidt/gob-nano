@@ -13,6 +13,7 @@ from src.gob.core.llm_client import MultiLLM
 from src.gob.core.memory.memory import MemoryManager
 from src.gob.core.logger import setup_logger
 from src.gob.orchestrator import AgentOrchestrator
+from src.gob.core.setup_wizard import GOBSetup
 
 logger = setup_logger()
 
@@ -69,10 +70,41 @@ def bootstrap():
     return config, memory, orchestrator
 
 
+def check_and_setup_api_key():
+    """Check if API key is configured and prompt if needed"""
+    try:
+        config = load_config()
+        api_key = config.get("llm", {}).get("api_key") or os.getenv("OPENROUTER_API_KEY")
+        
+        if not api_key:
+            print("🔑 OpenRouter API key not found. Let's set it up...")
+            print("Get your free key at: https://openrouter.ai/keys\n")
+            
+            # Run setup wizard
+            setup = GOBSetup()
+            setup.prompt_api_key()
+            
+            # Reload config after setup
+            config = load_config()
+            api_key = config.get("llm", {}).get("api_key") or os.getenv("OPENROUTER_API_KEY")
+            
+            if api_key:
+                print("✅ API key configured successfully!")
+                return True
+            else:
+                print("❌ API key setup failed. Please add your key to .env file manually.")
+                return False
+        
+        return True
+    except Exception as e:
+        print(f"❌ Error during API key setup: {e}")
+        return False
+
+
 def main_entry():
     """Main entry point - parses args and launches appropriate mode"""
     parser = argparse.ArgumentParser(description="GOB-01 Agent")
-    parser.add_argument("--mode", choices=["tui", "discord", "validate"], default="tui")
+    parser.add_argument("--mode", choices=["tui", "discord", "validate", "setup"], default="tui")
     args = parser.parse_args()
 
     if args.mode == "validate":
@@ -92,6 +124,18 @@ def main_entry():
             print("⚠️  No OpenRouter API key - set OPENROUTER_API_KEY in .env")
         print("✓ Validation complete")
         return
+
+    if args.mode == "setup":
+        # Run setup wizard
+        print("🚀 Running GOB setup wizard...")
+        setup = GOBSetup()
+        setup.run()
+        return
+
+    # Check if API key is configured, prompt if needed
+    if not check_and_setup_api_key():
+        print("❌ Cannot continue without API key. Please set up your OpenRouter API key.")
+        sys.exit(1)
 
     # Bootstrap all components
     config, memory, orchestrator = bootstrap()
