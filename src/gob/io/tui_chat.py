@@ -159,7 +159,7 @@ class TUIChat:
 
   Agent Name:        {Colors.AGENT_FG}{agent_info['name']}{Colors.RESET}
   Description:       {agent_info['description']}
-  Model:             {Colors.INFO}{self.orchestrator.llm.chat.model}{Colors.RESET}
+  Model:             {Colors.INFO}{self.orchestrator.llm.chat_model}{Colors.RESET}
   Provider:          OpenRouter
   Max Iterations:    {agent_info['max_iterations']}
   Retry on Error:    {agent_info['retry_on_error']}
@@ -208,7 +208,7 @@ class TUIChat:
 
         elif cmd == "/restart":
             clear_screen()
-            print_banner(self.agent_name, self.orchestrator.llm.chat.model, self.agent_desc)
+            print_banner(self.agent_name, self.orchestrator.llm.chat_model, self.agent_desc)
             logger.info("Session restarted")
 
         elif cmd == "/tools":
