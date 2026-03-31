@@ -1,15 +1,5 @@
 # Development
 
-## Structure
-```
-src/gob/
-├── main.py        # Entry point
-├── orchestrator.py
-├── tools/         # Tool implementations
-├── helpers/       # Config, memory, LLM
-└── interfaces/    # TUI, Discord
-```
-
 ## Setup
 ```bash
 git clone https://github.com/dusty-schmidt/gob.git
