@@ -3,25 +3,6 @@
 This tool provides functionality to read, write, and edit text files with support for
 line-based operations and patch-based modifications.
 """
-This tool provides functionality to read, write, and edit text files with support for
-def read(path: str, line_from: int = 1, line_to: Optional[int] = None) -> Dict[str, Any]:
-    """
-    Read file content with optional line range specification
-    
-    Args:
-        path: Path to the file to read
-        line_from: Starting line number (1-based, default: 1)
-        line_to: Ending line number (1-based, default: None = read to end)
-        
-    Returns:
-        Dict containing the file content and success status
-        
-    Example:
-        >>> result = read("/path/to/file.txt", line_from=1, line_to=10)
-        >>> if result["success"]:
-        ...     content = result["content"]
-        ...     print(f"Read {len(content.splitlines())} lines")
-    """
 
 from typing import Dict, Any, List, Optional
 

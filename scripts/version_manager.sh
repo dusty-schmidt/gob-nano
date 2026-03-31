@@ -96,6 +96,13 @@ create_tag() {
     echo -e "${GREEN}✅ Git tag 'v$version' created${NC}"
 }
 
+# Sync version files
+sync_version_files() {
+    local version=$(get_version)
+    set_version "$version"
+    echo -e "${GREEN}✅ Version files synchronized${NC}"
+}
+
 # Show version history
 show_version_history() {
     echo -e "${BLUE}=== GOB Version History ===${NC}"
@@ -110,7 +117,7 @@ try:
     from gob.version import get_version_history
     history = get_version_history()
     for version, info in history.items():
-        print(f'{version} ({info[\\"date\\"]}): {info[\\"description\\"]}')
+        print(f'{version} ({info[\\\"date\\\"]}): {info[\\\"description\\\"]}')
 except ImportError:
     print('Version history not available')
 "
@@ -138,8 +145,21 @@ main() {
             local message="$2"
             create_tag "$version" "$message"
             ;;
+        "bump")
+            local current_version=$(get_version)
+            IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            set_version "$NEW_VERSION"
+            ;;
         "history")
             show_version_history
+            ;;
+        "sync")
+            sync_version_files
             ;;
         "help"|"-h"|"--help")
             echo "GOB Version Manager"
@@ -149,8 +169,10 @@ main() {
             echo "Commands:"
             echo "  get          - Get current version"
             echo "  set <version> - Set new version (e.g., 0.2.0)"
+            echo "  bump         - Increment patch version automatically"
             echo "  tag [message] - Create git tag for current version"
             echo "  history      - Show version history"
+            echo "  sync         - Sync VERSION file with version.py"
             echo "  help         - Show this help"
             ;;
         *)
