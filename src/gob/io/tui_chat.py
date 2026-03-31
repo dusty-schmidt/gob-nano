@@ -72,9 +72,7 @@ def print_banner(agent_name: str, model: str, description: str = ""):
   Commands: /help, /clear, /restart, /tools, /status, /prompt, /exit
 """
     log_to_chat("INFO", f"\\n{banner}")
-    print(banner)
-    print(banner)
-    print(banner)
+    log_to_chat("INFO", f"\\n{banner}")
 
 def format_message(
     role: str, content: str, agent_name: str = "gob", max_width: int = 70
@@ -156,49 +154,7 @@ class TUIChat:
 {Colors.BORDER}│{Colors.RESET}  • All tools execute in the Docker container{' ' * (11)}{Colors.BORDER}│{Colors.RESET}
 {Colors.BORDER}└──────────────────────────────────────────────────────┘{Colors.RESET}
 """
-        print(help_text)
-    def _show_tools(self):
-        """Show available tools"""
-        agent_info = self.orchestrator.get_agent_info()
-        print(
-            f"\n{Colors.HEADER}Available Tools ({len(agent_info['enabled_tools'])}):{Colors.RESET}"
-        )
-        for tool in agent_info["enabled_tools"]:
-            print(f"  • {tool}")
-        print()
-
-    def _show_status(self):
-        """Show system status"""
-        agent_info = self.orchestrator.get_agent_info()
-
-        status = f"""
-{Colors.HEADER}System Status:{Colors.RESET}
-
-  Agent Name:        {Colors.AGENT_FG}{agent_info['name']}{Colors.RESET}
-  Description:       {agent_info['description']}
-  Model:             {Colors.INFO}{self.orchestrator.llm.chat_model}{Colors.RESET}
-  Provider:          OpenRouter
-  Max Iterations:    {agent_info['max_iterations']}
-  Retry on Error:    {agent_info['retry_on_error']}
-  
-  Memory:            {len(self.memory.get_all())} entries
-  Enabled Tools:   {len(agent_info['enabled_tools'])}
-"""
-        print(status)
-
-        print("  Tools:")
-        for tool in agent_info["enabled_tools"]:
-            print(f"    • {tool}")
-
-        print()
-
-    def _show_prompt(self):
-        """Show the current system prompt"""
-        print(f"\n{Colors.HEADER}System Prompt:{Colors.RESET}\n")
-        print(f"{Colors.BORDER}{'═' * 70}{Colors.RESET}")
-        print(self.orchestrator.get_system_prompt())
-        print(f"{Colors.BORDER}{'═' * 70}{Colors.RESET}")
-        print()
+        log_to_chat("INFO", help_text)
 
     def _clear_history(self):
         """Clear conversation history"""
