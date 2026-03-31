@@ -45,9 +45,21 @@ def create_skill(skill_name: str, description: str = ""):
             "message": f"Skill '{skill_name}' created successfully"
         }
     
-    except Exception as e:
-        logger.error(f"Failed to create skill: {e}")
+    except PermissionError as e:
+        logger.error(f"Permission denied when creating skill: {e}")
         return {
             "success": False,
-            "error": str(e)
+            "error": f"Permission denied: {e}. Check directory permissions."
+        }
+    except OSError as e:
+        logger.error(f"OS error when creating skill: {e}")
+        return {
+            "success": False,
+            "error": f"File system error: {e}. Check disk space or path validity."
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error creating skill: {e}")
+        return {
+            "success": False,
+            "error": f"An unexpected error occurred: {e}"
         }
