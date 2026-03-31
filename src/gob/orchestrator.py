@@ -133,6 +133,11 @@ If you don't need a tool, respond normally in plain text.
         """Run agent loop: get response, execute tools, loop until final answer"""
         start_time = time.time()
         logger.info(f"Starting message processing for conversation: {conversation_id}")
+        logger.info(f"[PROCESS_MESSAGE] ENTRY - Message: {message[:50]}...")
+        logger.info(f"[PROCESS_MESSAGE] Conversation ID: {conversation_id}")
+        logger.info(f"[PROCESS_MESSAGE] Memory available: {hasattr(self, "memory")}")
+        logger.info(f"[PROCESS_MESSAGE] LLM available: {hasattr(self, "llm")}")
+        logger.info(f"[PROCESS_MESSAGE] Current time: {time.time()}")
         
         # Retrieve relevant memories first (async call to utility model)
         recall_injection = ""
