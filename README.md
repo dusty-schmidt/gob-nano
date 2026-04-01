@@ -6,7 +6,6 @@ Minimal AI agent framework. A template you build from in any direction.
 
 - **Computer as THE tool** — runs in a Linux container with full system access
 - **Minimalism as THE template** — no framework lock-in, grows to suit your needs
-- **No two gobs end up the same** — it evolves with you
 
 ## Quick Start
 
