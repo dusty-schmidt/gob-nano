@@ -1,6 +1,6 @@
 # GOB
 
-Minimal AI agent framework. A template you build from in any direction.
+Minimal AI agent framework. A template from which you can build in any direction.
 
 ## Philosophy
 
