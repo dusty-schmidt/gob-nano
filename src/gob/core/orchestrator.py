@@ -116,6 +116,25 @@ If you don't need a tool, respond normally in plain text.
         """Get the current system prompt"""
         return self._system_prompt
 
+    def load_session_history(self, conversation_id: str, max_messages: int = 20):
+        """Load previous conversation history from SQLite for cross-session memory"""
+        try:
+            history = self.memory.get_conversations(conversation_id, limit=max_messages)
+            if history:
+                # Start with system prompt
+                self.messages = [{"role": "system", "content": self._system_prompt}]
+                # Add previous messages
+                for msg in history:
+                    role = msg.get("role", "user")
+                    content = msg.get("content", "")
+                    if role in ("user", "assistant") and content:
+                        self.messages.append({"role": role, "content": content})
+                logger.info(f"Loaded {len(history)} messages from session '{conversation_id}'")
+            else:
+                logger.info(f"No previous history for session '{conversation_id}'")
+        except Exception as e:
+            logger.warning(f"Could not load session history: {e}")
+
     async def process_message(self, message: str, conversation_id: str = "default") -> str:
         """Run agent loop: get response, execute tools, loop until final answer"""
         start_time = time.time()

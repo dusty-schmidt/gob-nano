@@ -156,6 +156,7 @@ class TUIChat:
     def _clear_history(self):
         """Clear conversation history"""
         self.conversation_id = f"tui_session_{int(time.time())}"
+        self.orchestrator.messages = []  # Reset LLM context too
         print(f"{Colors.SUCCESS}Conversation history cleared.{Colors.RESET}")
 
     def _process_command(self, cmd: str) -> bool:
@@ -185,6 +186,12 @@ class TUIChat:
         """Run the TUI chat loop"""
         clear_screen()
         print_banner(self.agent_name, self.orchestrator.llm.chat_model, self.agent_desc)
+
+        # Load previous session history
+        self.orchestrator.load_session_history(self.conversation_id)
+        msg_count = len(self.orchestrator.messages) - 1  # subtract system prompt
+        if msg_count > 0:
+            print(f"{Colors.INFO}Restored {msg_count} messages from previous session.{Colors.RESET}")
         print(f"{Colors.SUCCESS}{self.agent_name} is ready! Type /help for commands or start chatting.{Colors.RESET}\n")
 
         self.running = True

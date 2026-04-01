@@ -11,8 +11,8 @@ Minimal AI agent framework. A template you build from in any direction.
 ## Quick Start
 
 ```bash
-git clone https://github.com/dusty-schmidt/gob-01.git
-cd gob-01
+git clone https://github.com/dusty-schmidt/gob.git
+cd gob
 ```
 
 Create your `.env` file with your OpenRouter API key:
@@ -56,6 +56,12 @@ src/gob/
     ├── text_editor     # Read/write files
     └── document_query  # Parse documents
 ```
+
+## Configuration
+
+- `config/config.yaml` — System settings (LLM provider, model, API endpoint)
+- `config/agents/default.yaml` — Agent personality (system prompt, behavior)
+- `.env` — Secrets (API keys)
 
 ## Version
 

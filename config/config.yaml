@@ -1,9 +1,14 @@
+# GOB System Configuration
+# This file controls system-level settings (LLM provider, model, etc.)
+# For agent personality and behavior, see config/agents/default.yaml
+
 agent:
   name: gob
   profile: default
 
 default_mode: tui
 
+# LLM Configuration — THE source of truth for model settings
 llm:
   api_key: ${OPENROUTER_API_KEY}
   endpoint: https://openrouter.ai/api/v1
@@ -12,6 +17,7 @@ llm:
   chat_model: qwen/qwen3.6-plus-preview:free
   embedding_model: all-MiniLM-L6-v2
 
+# Tools available to the agent
 tools:
   enabled:
     - response
