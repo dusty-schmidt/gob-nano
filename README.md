@@ -39,12 +39,6 @@ python -m gob.run_gob --tui
 
 
 
-## Configuration
-
-- `config/config.yaml` — System settings (LLM provider, model, API endpoint)
-- `config/agents/default.yaml` — Agent personality (system prompt, behavior)
-- `.env` — Secrets (API keys)
-
 ## Version
 
 1.0.0
