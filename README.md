@@ -37,26 +37,7 @@ pip install -e .
 python -m gob.run_gob --tui
 ```
 
-## Structure
 
-```
-src/gob/
-├── run_gob.py          # Entry point
-├── core/
-│   ├── config_loader   # YAML config
-│   ├── llm_client      # LLM API (OpenRouter)
-│   ├── memory/         # SQLite + optional vector search
-│   ├── orchestrator    # Agent loop: prompt → LLM → tool → repeat
-│   └── tool_loader     # Dynamic tool import
-├── ux/
-│   └── tui_chat        # Terminal chat interface
-└── tools/
-    ├── response        # Send text to user
-    ├── code_execution  # Run Python/bash
-    ├── search_engine   # Web search (DuckDuckGo)
-    ├── text_editor     # Read/write files
-    └── document_query  # Parse documents
-```
 
 ## Configuration
 
