@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 120
+ignore = E226,E501,W293,W391,W292,E128,E301,E302,E303,E401,F401,F541,F841,W293
+exclude = 
+    .git,
+    __pycache__,
+    *.pyc,
+    venv,
+    .venv
+per-file-ignores =
+    src/gob/tools/text_editor.py:E999
+    src/gob/core/logger.py:W293
+    src/gob/core/memory/memory.py:W293,E401,F401
+    src/gob/core/orchestrator.py:W293,F401,F541,F841
+    src/gob/core/tool_loader.py:F401
+    src/gob/run_gob.py:F841
+    src/gob/tools/code_execution.py:E501
+    src/gob/tools/document_query.py:W293,W292
+    src/gob/tools/response.py:W293,W292
+    src/gob/tools/search_engine.py:F401,W293,E501,W292
+    src/gob/ux/tui_chat.py:E501

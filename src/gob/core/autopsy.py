@@ -22,7 +22,8 @@ _SYNTAX_INDICATORS: Final = (
 def _classify(exit_code: int, stderr: str) -> str:
     """Return a high-level classification string."""
     stderr_lower = stderr.lower()
-    if exit_code == 137 or any(k in stderr_lower for k in _OOM_KILL_INDICATORS):
+    if exit_code == 137 or any(k in stderr_lower
+                              for k in _OOM_KILL_INDICATORS):
         return "OOM kill (exit 137)"
     if any(k in stderr_lower for k in _TIMEOUT_INDICATORS):
         return "Timeout / Execution killed"
