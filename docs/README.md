@@ -1,24 +1,19 @@
-# Early Phase Documentation
+# GOB Documentation
 
-## What These Docs Are For
-These docs help validate if GOB is worth building. They're honest about what we don't know yet.
+These docs cover the current state of GOB v1.0.0 — a minimal AI agent framework.
 
-## What We Need To Validate
-1. **Installation friction** - Can people actually install it?
-2. **TUI usability** - Does the terminal interface work?  
-3. **Discord integration** - Does the bot actually connect?
-4. **Performance** - Is Docker overhead acceptable?
+## Contents
 
-## Known Problems (Please Confirm These)
-- Memory leaks during long conversations
-- TUI might freeze on Windows
-- Discord bot might disconnect
-- Docker might be too slow
+- [Architecture](architecture.md) — How the pieces fit together
+- [Development](development.md) — How to work on GOB
+- [Tools](tools.md) — Available tool reference
+- [Configuration](configuration.md) — Config file reference
 
-## How To Help
-1. Try installing: `pip install -e . && python -m gob.main --tui`
-2. Report what breaks: [GitHub issues]
-3. Answer: Would you actually use this?
+## Philosophy
 
-## Next Steps
-If enough people can install and use it without major issues, we'll build the real documentation.
+GOB is a **template** — a minimal, working starting point that you build from in any direction. Two GOB installs should never look the same because each one evolves to suit its owner's needs.
+
+Core principles:
+- **Computer as a tool** — Full Linux environment, install what you need
+- **No framework lock-in** — Standard Python, standard libraries, no magic
+- **Grow, don't bloat** — Start minimal, add only what you use

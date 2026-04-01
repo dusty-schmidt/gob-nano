@@ -1,25 +1,79 @@
-# Architecture (Early Phase)
+# Architecture
 
-## What We're Building
-AI agent that uses Discord as a bridge for human-agent collaboration.
+## Overview
 
-## Critical Assumptions (If Wrong, Project Dies)
-1. Users want TUI interface (not just web dashboard)
-2. Discord bot won't hit rate limits with real usage
-3. Docker containers won't be blocked by corporate firewalls
-4. Ollama API pricing stays reasonable
+GOB is a loop: **User → Orchestrator → LLM → (optional: Tool) → User**
 
-## Architecture Decisions We Might Regret
-- **Docker-first**: Performance might suck for quick commands
-- **Discord bridge**: Single point of failure if Discord changes API
-- **TUI interface**: Might be too complex for non-technical users
+```
+┌─────────────┐     ┌──────────────────┐     ┌───────────────┐
+│  TUI Chat   │────▶│  Orchestrator    │────▶│  OpenRouter   │
+│  (gob/ux/)  │◀────│  (gob/core/)     │◀────│  LLM API      │
+└─────────────┘     └────────┬─────────┘     └───────────────┘
+                             │
+                    ┌────────┼─────────┐
+                    ▼        ▼         ▼
+               ┌────────┐ ┌────────┐ ┌────────┐
+               │ Tools  │ │ Memory │ │ Config │
+               │ (exec, │ │(SQLite)│ │ (YAML) │
+               │ search)│ │        │ │        │
+               └────────┘ └────────┘ └────────┘
+```
 
-## What Could Break Everything
-- Memory system corrupts conversations
-- Docker overhead makes it unusable
-- Discord rate limits kill the bot
+## Directory Structure
 
-## Next Validation Steps
-1. Get 5 people to install and run TUI
-2. Test Discord bot with 10+ users
-3. Measure Docker overhead on slow machines
+```
+src/gob/
+├── run_gob.py              # Entry point — parses args, wires components
+├── core/
+│   ├── orchestrator.py     # The agent loop — sends messages, handles tools
+│   ├── llm_client.py       # LLM API client (OpenRouter) + local embeddings
+│   ├── memory/
+│   │   └── memory.py       # SQLite storage + lazy FAISS vector search
+│   ├── config_loader.py    # Loads config/config.yaml with env var resolution
+│   ├── agent_loader.py     # Loads agent profiles from config/agents/
+│   ├── tool_loader.py      # Dynamic tool import by name
+│   └── logger.py           # Logging setup
+├── ux/
+│   └── tui_chat.py         # Terminal chat interface
+└── tools/
+    ├── response.py         # Return text to user
+    ├── code_execution.py   # Run Python or bash
+    ├── search_engine.py    # Web search via DuckDuckGo
+    ├── text_editor.py      # Read/write/edit files
+    └── document_query.py   # Parse and query documents
+```
+
+## How a Message Flows
+
+1. **User types** in TUI → `tui_chat.py` captures input
+2. **TUI calls** `orchestrator.process_message(text, session_id)`
+3. **Orchestrator builds** the message list (system prompt + conversation history)
+4. **Orchestrator sends** messages to LLM via `llm_client.chat_complete()`
+5. **LLM responds** with either:
+   - **Plain text** → returned directly to user
+   - **JSON tool call** → orchestrator executes the tool, feeds result back to LLM, loops
+6. **TUI displays** the response and **saves** both messages to SQLite
+
+## Memory
+
+- **In-session**: The orchestrator keeps `self.messages` (list of dicts) growing through the conversation
+- **Cross-session**: On startup, TUI calls `orchestrator.load_session_history()` which reads the last 20 messages from SQLite
+- **Vector search** (optional): FAISS index is lazy-loaded only when `get_vector_based_memories()` is called
+
+## Configuration
+
+Two config files, clear responsibilities:
+
+| File | Controls | Example |
+|------|----------|---------|
+| `config/config.yaml` | System settings — LLM provider, model, API endpoint | `chat_model: qwen/qwen3.6-plus-preview:free` |
+| `config/agents/default.yaml` | Agent personality — system prompt, tools, behavior | `description: "Minimal AI assistant"` |
+| `.env` | Secrets — API keys | `OPENROUTER_API_KEY=sk-or-...` |
+
+## Future: v2.0.0 Dual Model Architecture
+
+The current architecture uses a single LLM for everything. v2.0.0 will introduce:
+- **Chat model** — handles user conversation (synchronous)
+- **Utility model** — handles memory summarization, embeddings, background tasks (async)
+
+This separation means the chat never stalls waiting for memory operations.
