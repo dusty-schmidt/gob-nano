@@ -11,3 +11,5 @@ node_modules/
 .npm/
 *.lock
 .DS_Store
+build/
+*.db

@@ -1,5 +1,1 @@
-"""NANO Memory - JSON-based memory system"""
-
-from .memory import MemoryManager
-
-__all__ = ["MemoryManager"]
+"""GOB Memory - conversation and knowledge storage"""

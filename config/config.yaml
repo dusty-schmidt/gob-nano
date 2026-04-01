@@ -4,20 +4,12 @@ agent:
 
 default_mode: tui
 
-discord:
-  prefix: null
-  token: ${DISCORD_BOT_TOKEN}
-
 llm:
-  api_key: ${OLLAMA_CLOUD_API_KEY}
-  endpoint: https://api.ollama.com/v1
+  api_key: ${OPENROUTER_API_KEY}
+  endpoint: https://openrouter.ai/api/v1
   max_tokens: 4096
   temperature: 0.7
-  # Primary chat model - used for all reasoning and responses
-  chat_model: llama3.2:3b
-  # Utility model - cheap model for internal tasks (memory queries, summarization)
-  utility_model: llama3.2:3b
-  # Embedding model - local sentence-transformers model name (no API cost)
+  chat_model: qwen/qwen3.6-plus-preview:free
   embedding_model: all-MiniLM-L6-v2
 
 tools:

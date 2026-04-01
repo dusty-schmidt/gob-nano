@@ -6,7 +6,7 @@ description: "Minimal AI assistant for edge devices"
 
 model:
   provider: "openrouter"
-  name: "qwen/qwen3.5-flash-02-23"
+  name: "qwen/qwen3.6-plus-preview:free"
   max_tokens: 4096
   temperature: 0.7
 

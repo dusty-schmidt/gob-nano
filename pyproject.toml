@@ -1,55 +1,43 @@
 [build-system]
-requires = ["setuptools>=65.0", "wheel", "setuptools_scm"]
+requires = ["setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "gob"
-version = "0.2.4"
-description = "Gradient Observation Bridge - Minimal Discord AI Agent for Edge Devices"
+version = "1.0.0"
+description = "GOB - Minimal AI agent framework"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{name = "dusty-schmidt"}]
 license = {text = "MIT"}
-keywords = ["discord", "ai", "agent", "edge-device", "minimal"]
+keywords = ["ai", "agent", "minimal"]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
-    "discord.py>=2.3.0",
-    "requests>=2.31.0",
     "pyyaml>=6.0",
     "python-dotenv>=1.0.0",
-    "duckduckgo-search>=5.0",
-    "httpx>=0.24.0",
-    "faiss-cpu>=1.7.3",
-    "sentence-transformers>=2.2.0",
-    "numpy>=1.24.0",
     "aiohttp>=3.8.0",
-    "langfuse>=2.0.0",
+    "numpy>=1.24.0",
 ]
 
-# Console scripts entry point - enables 'gob' CLI command after pip install
-[project.scripts]
-gob = "src.gob.main:main_entry"
-gob-setup = "src.gob.core.setup_wizard:setup_command"
-
-# Dev dependencies
+# Optional heavy dependencies
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "flake8>=6.0"]
+search = ["duckduckgo-search>=5.0"]
+embeddings = ["sentence-transformers>=2.2.0", "faiss-cpu>=1.7.3"]
+all = ["duckduckgo-search>=5.0", "sentence-transformers>=2.2.0", "faiss-cpu>=1.7.3"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0"]
+
+# Console entry point
+[project.scripts]
+gob = "gob.run_gob:main_entry"
 
 # Package configuration
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools_scm]
 
 [tool.black]
 line-length = 88

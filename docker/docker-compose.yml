@@ -1,27 +1,20 @@
 services:
   gob:
-    image: gob-gob:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile
     stdin_open: true
     tty: true
-    
-    # Load environment variables from .env (in parent directory)
+
+    # Load .env from project root
     env_file:
       - ../.env
-    
-    # Bind mounts for config and data
+
+    # Mount config so edits don't require rebuild
     volumes:
-      - ./config:/a0/config
-      - ./src/gob/data:/a0/data
-      - ./workdir:/a0/workdir
-      - ./tmp:/a0/tmp
-    
-    # Environment variables
+      - ../config:/app/config
+
     environment:
       - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-    
-    # Command to run (can be overridden)
-    command: python -m src.gob.main --mode tui
+
+    command: python -m gob.run_gob --tui

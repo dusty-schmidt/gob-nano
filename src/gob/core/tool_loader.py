@@ -1,21 +1,16 @@
-"""Tool loader for NANO"""
+"""Tool loader for GOB"""
 
 from importlib import import_module
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 def load_tool(tool_name: str):
     """Import and return a tool module from gob.tools by name"""
-    # Try src.gob.tools first (development mode)
-    module_path = f"src.gob.tools.{tool_name}"
+    module_path = f"gob.tools.{tool_name}"
     try:
         return import_module(module_path)
-    except ModuleNotFoundError:
-        # Fall back to gob.tools (installed package mode)
-        module_path = f"gob.tools.{tool_name}"
-        try:
-            return import_module(module_path)
-        except ModuleNotFoundError as e:
-            logger.error(f"Tool '{tool_name}' not found. Checked '{module_path}'. Error: {e}")
-            raise ImportError(f"Tool '{tool_name}' not found") from e
+    except ModuleNotFoundError as e:
+        logger.error(f"Tool '{tool_name}' not found at '{module_path}': {e}")
+        raise ImportError(f"Tool '{tool_name}' not found") from e
