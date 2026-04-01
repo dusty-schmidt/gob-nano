@@ -4,8 +4,10 @@ Minimal AI agent framework. A template you build from in any direction.
 
 ## Philosophy
 
-- **Computer as THE tool** — runs in a Linux container with full system access
-- **Minimalism as THE template** — no framework lock-in, grows to suit your needs
+- **Computer as THE tool** — Rather than building dozens of specific micro-tools, GOB grants the agent broad system access. This is implemented via the `code_execution` module, allowing the agent to dynamically write and run code directly within a Linux container:
+  - **Bash:** Executes raw shell commands with full system access. The agent can traverse the file system, install packages, use Git, and make network requests.
+  - **Python:** Executes code strings natively via `exec()`, capable of performing data processing, logic, and rapid file manipulation.
+ 
 
 ## Quick Start
 
