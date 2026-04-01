@@ -1,6 +1,6 @@
 # Tools Reference
 
-GOB tools are Python modules that the agent can invoke during conversation. The LLM decides when to use them by responding with a JSON tool call.
+gob tools are Python modules that the agent can invoke during conversation. The LLM decides when to use them by responding with a JSON tool call.
 
 ## How Tools Work
 
