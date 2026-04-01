@@ -1,4 +1,4 @@
-# GOB Documentation
+# gob Documentation
 
 These docs cover the current state of GOB v1.0.0 — a minimal AI agent framework.
 
@@ -11,7 +11,7 @@ These docs cover the current state of GOB v1.0.0 — a minimal AI agent framewor
 
 ## Philosophy
 
-GOB is a **template** — a minimal, working starting point that you build from in any direction. Two GOB installs should never look the same because each one evolves to suit its owner's needs.
+gob is a **template** — a minimal, working starting point that you build from in any direction. Two GOB installs should never look the same because each one evolves to suit its owner's needs.
 
 Core principles:
 - **Computer as a tool** — Full Linux environment, install what you need
