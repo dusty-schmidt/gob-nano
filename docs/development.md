@@ -4,7 +4,7 @@
 
 - Python 3.9+
 - An OpenRouter API key ([get one free](https://openrouter.ai/keys))
-- Git
+- Git, Docker (for sandbox isolation)
 
 ## Setup
 
@@ -34,13 +34,14 @@ gob/
 │   ├── config.yaml         # System config (model, provider, tools)
 │   └── agents/
 │       └── default.yaml    # Agent personality and behavior
-├── docker/                 # Docker configuration
+├── docker/                 # Sandbox and deployment Dockerfiles
 ├── docs/                   # Documentation (you are here)
 ├── src/gob/                # Source code
 │   ├── run_gob.py          # Entry point
-│   ├── core/               # Core logic
+│   ├── core/               # Core logic (orchestrator, memory, autopsy)
 │   ├── ux/                 # User interfaces
 │   └── tools/              # Agent tools
+├── scripts/                # G.O.B. safety scripts (sandbox, merge, validation)
 ├── tests/                  # Test suite
 ├── .env                    # API keys (not committed)
 ├── pyproject.toml          # Python package config
@@ -49,27 +50,29 @@ gob/
 
 ## Git Workflow
 
-Solo dev workflow — simple and honest:
+**Safety-first development:** Never push directly to `main`. The agent protects its own codebase by enforcing branch isolation and pre-merge validation.
 
 ```bash
-# Start a fix or feature
-git checkout -b fix/description-of-change
+# 1. Configure rebase to keep linear history
+git config --global pull.rebase true
 
-# Make your changes, then:
-git add -A
-git commit -m "fix: what you changed"
-git checkout main
-git merge fix/description-of-change
-git branch -d fix/description-of-change
-git push origin main
+# 2. Start work
+git checkout main && git pull
+git checkout -b fix/description
+
+# 3. Code, then validate locally
+./scripts/run_sandbox.sh "python -m py_compile src/gob/core/*.py"
+
+# 4. Commit and push
+git add -A && git commit -m "fix: what changed"
+git pull origin main --rebase  # Sync before pushing
+git push origin fix/description
+
+# 5. Merge safely (run from main after review)
+./scripts/merge_safely.sh fix/description
 ```
 
-**Versioning:** Commit freely, tag releases only when you hit a milestone.
-```bash
-# When you've reached a meaningful release:
-git tag v1.1.0
-git push origin v1.1.0
-```
+**Why this matters:** The `merge_safely.sh` script enforces syntax checks, test gates, and version bumping automatically. No human error, no skipped validation.
 
 ## Changing the Model
 
@@ -83,10 +86,9 @@ Browse available models at [openrouter.ai/models](https://openrouter.ai/models).
 
 ## Adding a New Tool
 
-1. Create `src/gob/tools/your_tool.py` with an `execute()` function
-2. Add the tool name to `config/config.yaml` under `tools.enabled`
-3. Add the tool name to `config/agents/default.yaml` under `tools`
-4. The orchestrator will auto-load it
+1. Create `src/gob/tools/your_tool.py` with an `execute(**kwargs)` function
+2. Add a docstring with `Args:` section — the orchestrator contract-checks this before allowing calls
+3. Enable it in `config/config.yaml` under `tools.enabled` and `config/agents/default.yaml` under `tools`
 
 ## Useful Make Commands
 

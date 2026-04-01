@@ -2,6 +2,8 @@
 
 gob tools are Python modules that the agent can invoke during conversation. The LLM decides when to use them by responding with a JSON tool call.
 
+All tools are **contract-validated** on load: they must have an `execute()` function with a docstring containing an `Args:` section. Tools return structured results — never raw strings.
+
 ## How Tools Work
 
 When the LLM needs a tool, it responds with:
@@ -9,7 +11,7 @@ When the LLM needs a tool, it responds with:
 {"tool": "code_execution", "params": {"code": "print('hello')", "language": "python"}}
 ```
 
-The orchestrator loads the module from `src/gob/tools/`, calls `execute(**params)`, and feeds the result back to the LLM.
+The orchestrator loads the module, validates its contract, executes it, and feeds the result back to the LLM.
 
 ## Available Tools
 
