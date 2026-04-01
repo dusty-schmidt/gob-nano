@@ -19,9 +19,9 @@ gob is a loop: **User → Orchestrator → LLM → (optional: Tool) → User**
                └────────┘ └────────┘ └────────┘
 ```
 
-## Safety (G.O.B.)
+## Safety
 
-GOB is built with a self-protecting architecture called **G.O.B.** (Governance & Operations Backbone). It prevents the agent from damaging its own environment by enforcing four pillars:
+GOB is built with a self-protecting architecture. It prevents the agent from damaging its own environment by enforcing four pillars:
 
 1. **Isolation** — Code execution runs inside a resource-capped Docker container (`512MB RAM`, `1 CPU`). Infinite loops or memory leaks cannot brick the host.
 2. **Validation** — Every tool is contract-checked (docstrings, signatures) before loading. Merges require syntax and test gates.
