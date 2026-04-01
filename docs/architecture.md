@@ -2,7 +2,7 @@
 
 ## Overview
 
-GOB is a loop: **User → Orchestrator → LLM → (optional: Tool) → User**
+gob is a loop: **User → Orchestrator → LLM → (optional: Tool) → User**
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌───────────────┐
