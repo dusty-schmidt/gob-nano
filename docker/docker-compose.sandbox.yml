@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  sandbox:
+    image: gob-sandbox:latest
+    build:
+      context: ..
+      dockerfile: docker/sandbox.Dockerfile
+    # Resource limits for safety
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    # Mount the host working directory as read-only source
+    volumes:
+      - ..:/app:ro
+      # Writable temp/logs directory
+      - go-logs:/app/logs
+      - go-tmp:/tmp
+    environment:
+      - SANDBOX=true
+      - PYTHONUNBUFFERED=1
+    # Override entrypoint to run arbitrary commands instead of default entrypoint
+    entrypoint: []
+    # Default working dir
+    working_dir: /app
+
+volumes:
+  go-logs:
+  go-tmp:
