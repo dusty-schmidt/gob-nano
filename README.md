@@ -1,4 +1,4 @@
-# gob
+# GOB
 
 Minimal AI agent framework. A template you build from in any direction.
 
